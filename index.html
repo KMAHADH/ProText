@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ProText // Enterprise Workspace Console</title>
+    <style>
+        :root {
+            --bg-primary: #121214;
+            --bg-surface: #1a1a1e;
+            --border-color: #2a2a32;
+            --text-primary: #e4e4e7;
+            --text-muted: #a1a1aa;
+            --accent-color: #3b82f6;
+            --accent-hover: #2563eb;
+            --font-workspace: 'Courier New', Courier, monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* --- TOP RUNTIME CONTROL CONSOLE --- */
+        header {
+            background-color: var(--bg-surface);
+            border-bottom: 1px solid var(--border-color);
+            padding: 0.75rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+        }
+
+        .branding {
+            font-weight: 700;
+            font-size: 1.1rem;
+            letter-spacing: 1px;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .branding span {
+            color: var(--accent-color);
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .btn {
+            background-color: var(--border-color);
+            color: var(--text-primary);
+            border: 1px solid transparent;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.85rem;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .btn:hover {
+            background-color: #3f3f46;
+            border-color: var(--text-muted);
+        }
+
+        .btn-primary {
+            background-color: var(--accent-color);
+            color: #ffffff;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--accent-hover);
+            border-color: transparent;
+        }
+
+        select {
+            background-color: var(--border-color);
+            color: var(--text-primary);
+            border: 1px solid transparent;
+            padding: 0.5rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            outline: none;
+        }
+
+        select:focus {
+            border-color: var(--accent-color);
+        }
+
+        /* --- MAIN WORKSPACE VIEWPORT --- */
+        main {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            padding: 2rem;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .editor-container {
+            width: 100%;
+            max-width: 800px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        textarea {
+            width: 100%;
+            flex: 1;
+            background: transparent;
+            border: none;
+            resize: none;
+            color: var(--text-primary);
+            font-family: var(--font-workspace);
+            font-size: 1.1rem;
+            line-height: 1.6;
+            outline: none;
+            padding: 0.5rem;
+        }
+
+        /* --- LIVE TELEMETRY FOOTER FOOTPRINT --- */
+        footer {
+            background-color: var(--bg-surface);
+            border-top: 1px solid var(--border-color);
+            padding: 0.5rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .telemetry-rack {
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        .status-pill {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .indicator-dot {
+            width: 6px;
+            height: 6px;
+            background-color: var(--accent-color);
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .indicator-dot.saved {
+            background-color: #10b981;
+        }
+
+        .indicator-dot.typing {
+            background-color: #f59e0b;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="branding">📊 ProText <span>//</span> Enterprise</div>
+        <div class="control-group">
+            <select id="fontSelector" title="Workspace Typography Framework">
+                <option value="'Courier New', Courier, monospace">Monospace (Default)</option>
+                <option value="system-ui, sans-serif">San-Serif Clean</option>
+                <option value="Georgia, serif">Classic Serif</option>
+            </select>
+            <select id="sizeSelector" title="Workspace Font Scale Metric">
+                <option value="1rem">Small Scale</option>
+                <option value="1.1rem" selected>Standard Scale</option>
+                <option value="1.25rem">Intermediate Scale</option>
+                <option value="1.5rem">Magnified Scale</option>
+            </select>
+            <button class="btn" id="clearBtn">Wipe Workspace</button>
+            <button class="btn btn-primary" id="downloadBtn">📦 Export Document</button>
+        </div>
+    </header>
+
+    <main>
+        <div class="editor-container">
+            <textarea id="workspace" placeholder="Begin typing your infrastructure logs, markdown drafts, or operational scripts here..." autocomplete="off" spellcheck="false"></textarea>
+        </div>
+    </main>
+
+    <footer>
+        <div class="telemetry-rack">
+            <span>Words: <strong id="wordCount">0</strong></span>
+            <span>Characters: <strong id="charCount">0</strong></span>
+        </div>
+        <div class="status-pill">
+            <span class="indicator-dot" id="statusIndicator"></span>
+            <span id="statusText">Workspace Running</span>
+        </div>
+    </footer>
+
+    <script>
+        const workspace = document.getElementById('workspace');
+        const wordCount = document.getElementById('wordCount');
+        const charCount = document.getElementById('charCount');
+        const fontSelector = document.getElementById('fontSelector');
+        const sizeSelector = document.getElementById('sizeSelector');
+        const clearBtn = document.getElementById('clearBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const statusIndicator = document.getElementById('statusIndicator');
+        const statusText = document.getElementById('statusText');
+
+        let autoSaveTimeout;
+
+        // --- CORE TELEMETRY TRACKER ---
+        function updateTelemetry() {
+            const text = workspace.value;
+            
+            // Calculate absolute characters
+            charCount.textContent = text.length;
+
+            // Calculate words cleanly while matching whitespaces
+            const cleanText = text.trim();
+            const words = cleanText === '' ? 0 : cleanText.split(/\s+/).length;
+            wordCount.textContent = words;
+        }
+
+        // --- LOCAL STORAGE AUTO-SAVE LOOPS ---
+        function triggerAutoSave() {
+            statusIndicator.className = "indicator-dot typing";
+            statusText.textContent = "Typing...";
+
+            clearTimeout(autoSaveTimeout);
+
+            // Debounce input updates for 500ms to save drive read/write cycles
+            autoSaveTimeout = setTimeout(() => {
+                localStorage.setItem('protext_workspace_buffer', workspace.value);
+                statusIndicator.className = "indicator-dot saved";
+                statusText.textContent = "Workspace Saved Locally";
+            }, 500);
+        }
+
+        // --- NATIVE SYSTEM I/O OPERATIONS ---
+        function executeDownload() {
+            const payload = workspace.value;
+            if (!payload.trim()) {
+                alert("Cannot export an empty system document workspace buffer.");
+                return;
+            }
+
+            const textBlob = new Blob([payload], { type: 'text/plain' });
+            const downloadLink = document.createElement('a');
+            
+            // Format dynamic backup title filename
+            const stamp = new Date().toISOString().slice(0,10);
+            downloadLink.download = `protext_export_${stamp}.txt`;
+            downloadLink.href = window.URL.createObjectURL(textBlob);
+            downloadLink.style.display = 'none';
+            
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+            document.body.removeChild(downloadLink);
+        }
+
+        function clearWorkspace() {
+            if (confirm("Are you entirely sure you want to flush the active workspace buffer? This clears local browser caches.")) {
+                workspace.value = '';
+                localStorage.removeItem('protext_workspace_buffer');
+                updateTelemetry();
+                statusIndicator.className = "indicator-dot";
+                statusText.textContent = "Workspace Flushed Clean";
+            }
+        }
+
+        // --- SYSTEM CONFIGURATION APPLIERS ---
+        fontSelector.addEventListener('change', () => {
+            workspace.style.fontFamily = fontSelector.value;
+            localStorage.setItem('protext_pref_font', fontSelector.value);
+        });
+
+        sizeSelector.addEventListener('change', () => {
+            workspace.style.fontSize = sizeSelector.value;
+            localStorage.setItem('protext_pref_size', sizeSelector.value);
+        });
+
+        // --- LIFECYCLE INITIALIZATION BOOTSTRAP ---
+        function bootstrapApplication() {
+            // Restore text buffer context
+            const savedBuffer = localStorage.getItem('protext_workspace_buffer');
+            if (savedBuffer !== null) {
+                workspace.value = savedBuffer;
+            }
+
+            // Restore custom font families configurations
+            const savedFont = localStorage.getItem('protext_pref_font');
+            if (savedFont !== null) {
+                fontSelector.value = savedFont;
+                workspace.style.fontFamily = savedFont;
+            }
+
+            // Restore text size layouts configurations
+            const savedSize = localStorage.getItem('protext_pref_size');
+            if (savedSize !== null) {
+                sizeSelector.value = savedSize;
+                workspace.style.fontSize = savedSize;
+            }
+
+            updateTelemetry();
+            
+            if(savedBuffer) {
+                statusIndicator.className = "indicator-dot saved";
+                statusText.textContent = "Restored Context from Cache";
+            }
+        }
+
+        // --- EVENT ATTACHMENTS ---
+        workspace.addEventListener('input', () => {
+            updateTelemetry();
+            triggerAutoSave();
+        });
+
+        downloadBtn.addEventListener('click', executeDownload);
+        clearBtn.addEventListener('click', clearWorkspace);
+
+        // Execute Bootstrap
+        document.addEventListener('DOMContentLoaded', bootstrapApplication);
+    </script>
+</body>
+</html>
