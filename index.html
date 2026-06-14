@@ -3,17 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ProText // Enterprise Workspace Console</title>
+    <title>ProText // Professional Workspace Console</title>
     <style>
         :root {
-            --bg-primary: #121214;
-            --bg-surface: #1a1a1e;
-            --border-color: #2a2a32;
-            --text-primary: #e4e4e7;
-            --text-muted: #a1a1aa;
-            --accent-color: #3b82f6;
-            --accent-hover: #2563eb;
-            --font-workspace: 'Courier New', Courier, monospace;
+            /* Decoupled Color & Opacity Core Channel Channels */
+            --bg-color-rgb: 255, 255, 255;
+            --active-opacity: 0.85;
+            --glass-bg: rgba(var(--bg-color-rgb), var(--active-opacity));
+            
+            --glass-border: 2px solid #000000;
+            --text-main: #000000;
+            --workspace-font: 'Arial', sans-serif;
+            --workspace-size: 2rem;
+            --workspace-weight: normal;
+            --blur-amount: 12px;
         }
 
         * {
@@ -22,327 +25,2962 @@
             padding: 0;
         }
 
+        /* Highlight state for the currently active wallpaper row */
+        .wallpaper-item-row.active-wallpaper-node {
+        background: rgba(0, 0, 0, 0.08); /* Darkens the active slot row */
+        font-weight: 900;                /* Bolds the slot metadata text */
+        border-left: 5px solid #000000;  /* Adds a heavy terminal accent line on the left border */
+        }
+
+        :root-color {
+            --workspace-fg: black;
+             --workspace-bg: white;
+            }
+
+
         body {
-            background-color: var(--bg-primary);
-            color: var(--text-primary);
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            width: 100vw;
             height: 100vh;
             display: flex;
-            flex-direction: column;
+            background: #f3f4f6;
+            background-position: center center fixed;
+            background-repeat: no-repeat;
+            background-size: cover;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
             overflow: hidden;
+            transition: background 0.3s ease;
         }
 
-        /* --- TOP RUNTIME CONTROL CONSOLE --- */
-        header {
-            background-color: var(--bg-surface);
-            border-bottom: 1px solid var(--border-color);
-            padding: 0.75rem 1.5rem;
+
+        /* --- LEFT SIDE NAVIGATION CONTROLS --- */
+        aside {
+            width: 75px;
+            background: rgba(0, 0, 0, 0.05);
+            backdrop-filter: blur(8px);
+            border-right: var(--glass-border);
             display: flex;
-            justify-content: space-between;
+            flex-direction: column;
             align-items: center;
-            z-index: 10;
+            padding: 1.5rem 0;
+            gap: 1rem;
+            z-index: 100;
         }
-
-        .branding {
-            font-weight: 700;
-            font-size: 1.1rem;
-            letter-spacing: 1px;
-            color: var(--text-primary);
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
+        
+        .saveModal {
+          position: absolute !important;
+          top: 50% !important;
+          left: 50% !important;
+          transform: translate(-50%, -50%) !important;
         }
+        
+     
 
-        .branding span {
-            color: var(--accent-color);
-        }
-
-        .control-group {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-
-        .btn {
-            background-color: var(--border-color);
-            color: var(--text-primary);
-            border: 1px solid transparent;
-            padding: 0.5rem 1rem;
-            border-radius: 6px;
+        .side-icon-btn {
+            width: 45px;
+            height: 45px;
+            background: white;
+            border: var(--glass-border);
             cursor: pointer;
-            font-weight: 500;
-            font-size: 0.85rem;
-            transition: all 0.2s ease;
+            font-size: 1.2rem;
             display: flex;
             align-items: center;
-            gap: 0.35rem;
-        }
-
-        .btn:hover {
-            background-color: #3f3f46;
-            border-color: var(--text-muted);
-        }
-
-        .btn-primary {
-            background-color: var(--accent-color);
-            color: #ffffff;
-        }
-
-        .btn-primary:hover {
-            background-color: var(--accent-hover);
-            border-color: transparent;
-        }
-
-        select {
-            background-color: var(--border-color);
-            color: var(--text-primary);
-            border: 1px solid transparent;
-            padding: 0.5rem;
-            border-radius: 6px;
-            font-size: 0.85rem;
-            cursor: pointer;
-            outline: none;
-        }
-
-        select:focus {
-            border-color: var(--accent-color);
-        }
-
-        /* --- MAIN WORKSPACE VIEWPORT --- */
-        main {
-            flex: 1;
-            display: flex;
             justify-content: center;
-            padding: 2rem;
-            overflow-y: auto;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
         }
 
-        .editor-container {
-            width: 100%;
-            max-width: 800px;
+        .side-icon-btn:hover, .side-icon-btn.active {
+            transform: scale(1.08);
+            background: #000000;
+            color: #ffffff;
+            border-color: #ffffff;
+        }
+
+        .stdBtn {
+            background: var(--bg);
+            color: var(--fg);
+            border: var(--glass-border);
+            padding: 0.6rem;
+            font-size: 0.95rem;
+            transition: 0.2s ease;
+            cursor: pointer;
+            font-weight: bold;
+            }
+
+.stdBtn:hover,
+.stdBtn.active {
+  background: var(--fg);
+  color: var(--bg);
+  border-color: var(--bg);
+}
+
+        .side-icon-btn::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            left: 85px;
+            background: black;
+            color: white;
+            font-size: 0.8rem;
+            padding: 0.4rem 0.8rem;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+            z-index: 200;
+        }
+
+        .side-icon-btn:hover::after {
+            opacity: 1;
+        }
+
+        /* --- MAIN WORKSPACE VIEWPORT GRID --- */
+        main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 1.3rem 4rem 2rem;
+            gap: 1.5rem;
+            position: relative;
             height: 100%;
+        }
+
+      /* --- UPDATED TITLE HUB EXTENSION WRAPPER --- */
+    .title-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        gap: 0.5rem;
+    }
+
+    #title {
+        flex: 1; /* Title stretches to consume space dynamically */
+        font-family: var(--workspace-font);
+        font-size: 5rem;
+        font-weight: 700;
+        padding: 0.8rem 1.5rem;
+        color: var(--text-main);
+        background: var(--glass-bg);
+        border: var(--glass-border);
+        outline: none;
+        text-align: center; /* Text flows naturally to the dot split */
+        letter-spacing: -0.5px;
+        backdrop-filter: blur(var(--blur-amount, 12px));
+        transition: background 0.2s ease, backdrop-filter 0.2s ease;
+        width: 87.00%;
+    }
+
+#ext-div {
+    font-size: 7rem;
+    font-weight: 900;
+    color: var(--text-main);
+    user-select: none;
+    padding: 0 0.25rem;
+
+    text-shadow:
+        -5px -5px 0 var(--glass-bg),
+         5px -5px 0 var(--glass-bg),
+        -5px  5px 0 var(--glass-bg),
+         5px  5px 0 var(--glass-bg);
+}
+
+    #ext {
+        font-family: var(--workspace-font);
+        font-size: 5rem;
+        font-weight: 700;
+        padding: 0.8rem 1rem;
+        background: var(--glass-bg);
+        border: var(--glass-border);
+        outline: none;
+        text-align: center;
+        letter-spacing: -0.5px;
+        backdrop-filter: blur(var(--blur-amount, 12px));
+        transition: background 0.2s ease, backdrop-filter 0.2s ease;
+        width: 11.65%;
+        color: var(--text-main);
+    }
+        .editor-wrapper {
+            flex: 1;
+            position: relative;
+            width: 100%;
+        }
+
+        #content {
+            width: 100%;
+            height: 100%;
+            background: var(--glass-bg);
+            border: var(--glass-border);
+            padding: 2.5rem;
+            font-family: var(--workspace-font);
+            font-size: var(--workspace-size);
+            font-weight: var(--workspace-weight);
+            line-height: 1.5;
+            color: var(--text-main);
+            resize: none;
+            outline: none;
+            backdrop-filter: blur(var(--blur-amount, 12px));
+            transition: background 0.2s ease, backdrop-filter 0.2s ease;
+        }
+
+        /* --- RUNTIME REALTIME METRICS FOOTER --- */
+        footer {
+            width: 100%;
+            color: var(--text-main);
+            background: var(--glass-bg);
+            border: var(--glass-border);
+            padding: 0.8rem 1.5rem;
+            font-size: 1.5rem;
+            font-family: var(--workspace-font) !important;
+            font-weight: bold;
+            text-transform: uppercase;
+            display: flex;
+            justify-content: space-between;
+            backdrop-filter: blur(var(--blur-amount, 12px));
+            transition: background 0.2s ease, backdrop-filter 0.2s ease;
+        }
+
+        /* --- CONFIGURATION OVERLAY BLOCKS (FLOATING GLASS MODULES) --- */
+        .glass-panel {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.92);
+            border: var(--glass-border);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+            backdrop-filter: blur(16px);
+            z-index: 200;
+            opacity: 1;
+            transition: opacity 0.15s ease;
+        }
+
+        #floating-tools {
+            right: 4rem;
+            top: 8.5rem;
+            width: 320px;
+        }
+
+        #floating-wallpapers {
+            left: 6.5rem;
+            top: 8.5rem;
+            width: 650px;
+        }
+
+        .panel-header-drag {
+            background: #000000;
+            color: #ffffff;
+            padding: 0.5rem 1rem;
+            font-size: 0.8rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: move;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            user-select: none;
+        }
+
+        .panel-body-content {
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .tool-row {
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+        }
+
+        .tool-row label {
+            font-size: 0.85rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .glass-panel select, .glass-panel button, .glass-panel input {
+            width: 100%;
+            padding: 0.6rem;
+            font-size: 1.1rem;
+            border: var(--glass-border);
+            background: white;
+            outline: none;
+            color: black;
+        }
+
+        .glass-panel button { cursor: pointer; font-weight: bold; }
+        .glass-panel button:hover { background: red; color: white; }
+
+        /* Wallpaper Node Matrix List */
+        .wallpaper-manager-list {
+            max-height: 140px;
+            overflow-y: auto;
+            border: var(--glass-border);
+            background: white;
             display: flex;
             flex-direction: column;
         }
 
-        textarea {
-            width: 100%;
-            flex: 1;
-            background: transparent;
-            border: none;
-            resize: none;
-            color: var(--text-primary);
-            font-family: var(--font-workspace);
-            font-size: 1.1rem;
-            line-height: 1.6;
-            outline: none;
-            padding: 0.5rem;
-        }
-
-        /* --- LIVE TELEMETRY FOOTER FOOTPRINT --- */
-        footer {
-            background-color: var(--bg-surface);
-            border-top: 1px solid var(--border-color);
-            padding: 0.5rem 1.5rem;
+        .wallpaper-item-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 0.8rem;
-            color: var(--text-muted);
+            padding: 0.4rem 0.6rem;
+            border-bottom: 1px solid #e4e4e7;
+            font-size: 0.85rem;
+            font-family: monospace;
         }
 
-        .telemetry-rack {
-            display: flex;
-            gap: 1.5rem;
+        .wallpaper-item-row:last-child { border-bottom: none; }
+        .wallpaper-item-row span {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 540px;
         }
 
-        .status-pill {
+        .delete-node-btn {
+            background: transparent !important;
+            color: #ef4444 !important;
+            border: none !important;
+            font-size: 0.9rem !important;
+            cursor: pointer;
+            width: auto !important;
+            padding: 0 0.25rem !important;
+        }
+        .delete-node-btn:hover { color: #b91c1c !important; background: transparent !important; }
+
+        /* --- REFERENCE MODAL VIEWS --- */
+        .reference-overlay {
+            position: fixed;
+            top: 10%;
+            left: 12%;
+            width: 76%;
+            height: 80%;
+            background: white;
+            border: var(--glass-border);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.3);
+            display: none;
+            z-index: 500;
+            flex-direction: column;
+        }
+
+        .reference-overlay iframe { 
+            width: 100%; 
+            height: 100%; 
+            border: none;
+            display: block;
+        }
+        
+        .close-modal-btn {
+            position: absolute;
+            top: -15px;
+            right: -15px;
+            background: #ffffff;
+            border: var(--glass-border);
+            font-size: 1.2rem;
+            width: 35px;
+            height: 35px;
+            cursor: pointer;
+            font-weight: bold;
             display: flex;
             align-items: center;
-            gap: 0.35rem;
+            justify-content: center;
+            z-index: 510;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            transition: background 0.15s ease, color 0.15s ease;
         }
+        .close-modal-btn:hover { background: red; color: white; }
 
-        .indicator-dot {
-            width: 6px;
-            height: 6px;
-            background-color: var(--accent-color);
-            border-radius: 50%;
-            display: inline-block;
+        .hidden { display: none !important; }
+        
+        #clarity-overlay {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 130px;
+            backdrop-filter: blur(4px);
+            z-index: -5;
+            background: transparent;
+            transition: background 0.25s ease;
         }
+        
+        
+        /* Context Menu Frame */
+.custom-menu {
+    position: absolute;
+    background: var(--text-main); /* Clean glass panel channel fallback */
+    backdrop-filter: blur(10px);
+    border: var(--glass-border);
+    width: 200px;
+    z-index: 10000; /* Keeps it layered completely on top of sidebars and headers */
+    box-shadow: 4px 4px 0px #000000; /* Matches ProText crisp layout drop shadows */
+    padding: 0.35rem 0;
+    display: flex;
+    flex-direction: column;
+}
 
-        .indicator-dot.saved {
-            background-color: #10b981;
-        }
+/* Hide utility state */
+.custom-menu.hidden {
+    display: none !important;
+}
 
-        .indicator-dot.typing {
-            background-color: #f59e0b;
-        }
+/* Individual Option Rows */
+.menu-item {
+    padding: 0.5rem 1.25rem;
+    font-family: var(--workspace-font); 
+    font-size: 0.9rem;
+    color: var(--glass-bg);
+    cursor: pointer;
+    transition: background 0.1s ease;
+    text-align: left;
+}
+
+.menu-item:hover {
+    background: var(--glass-bg); /* Darkens row slightly on hover state */
+    color: var(--text-main);
+    font-weight: bold;
+}
+
+/* Internal Divider Lines */
+.menu-divider {
+    border: none;
+    border-top: 2px solid #000000;
+    margin: 0.35rem 0;
+}
+        
+        
     </style>
 </head>
-<body>
+<body id="mainBody">
 
-    <header>
-        <div class="branding">📊 ProText <span>//</span> Enterprise</div>
-        <div class="control-group">
-            <select id="fontSelector" title="Workspace Typography Framework">
-                <option value="'Courier New', Courier, monospace">Monospace (Default)</option>
-                <option value="system-ui, sans-serif">San-Serif Clean</option>
-                <option value="Georgia, serif">Classic Serif</option>
-            </select>
-            <select id="sizeSelector" title="Workspace Font Scale Metric">
-                <option value="1rem">Small Scale</option>
-                <option value="1.1rem" selected>Standard Scale</option>
-                <option value="1.25rem">Intermediate Scale</option>
-                <option value="1.5rem">Magnified Scale</option>
-            </select>
-            <button class="btn" id="clearBtn">Wipe Workspace</button>
-            <button class="btn btn-primary" id="downloadBtn">📦 Export Document</button>
+    <aside>
+        <button class="side-icon-btn" id="btnNew" data-tooltip="Clean Workspace File">📄</button>
+        <button class="side-icon-btn" id="btnLoadTrigger" data-tooltip="Upload System File">📂</button>
+        <button class="side-icon-btn" id="btnSave" data-tooltip="Save Local Document">💾</button>
+        <input type="file" id="fileToLoad" class="hidden">
+        
+        <hr style="width: 60%; border: 1px solid black; margin: -0.25rem 0;">
+        
+        <button class="side-icon-btn" id="btnThesaurus" data-tooltip="Open Thesaurus Matrix">📚</button>
+        <button class="side-icon-btn" id="btnDictionary" data-tooltip="Open Dictionary Matrix">📖</button>
+        <button class="side-icon-btn active" id="btnSpellcheck" data-tooltip="Toggle Spellcheck Engine">📝</button>
+        <button class="side-icon-btn" id="btnAutocomplete" data-tooltip="Toggle Autocomplete AI">🔮</button>
+        
+      
+        
+        <button class="side-icon-btn" id="btnWallpaperMenu" data-tooltip="Toggle Wallpaper Hub">🖼️</button>
+        <button class="side-icon-btn" id="btnClarity" data-tooltip="Toggle Clarity Shield">👓</button>
+        <button class="side-icon-btn" id="btnOpacity" data-tooltip="Toggle Core Opacity Mode">🌓</button>
+        <button class="side-icon-btn active" id="btnConfig" data-tooltip="Toggle Configuration Console">⚙️</button>
+    </aside>
+
+    <main id="workspaceMain">
+        <div style="display: block">
+        <input id="title" placeholder="UNTITLED DOCUMENT PREVIEW" autocomplete="off"> <label id="ext-div" style="text-shadow: black">.</label> <input id="ext" placeholder="TXT" autocomplete="off">
         </div>
-    </header>
+        
+        <div class="editor-wrapper">
+            <textarea id="content" placeholder="Begin typing configuration text loops or documentation data arrays here..." spellcheck="true" autocomplete="off"></textarea>
+        </div>
 
-    <main>
-        <div class="editor-container">
-            <textarea id="workspace" placeholder="Begin typing your infrastructure logs, markdown drafts, or operational scripts here..." autocomplete="off" spellcheck="false"></textarea>
+        <footer>
+            <div id="leftTelemetry">METRICS TERMINAL NODE ACTIVE</div>
+            <div id="rightTelemetry">LN 1, COL 1 | WORKSPACE: DEFAULT WORKSPACE</div>
+        </footer>
+
+<div class="glass-panel hidden" id="floating-wallpapers">
+    <button class="close-modal-btn" id="closeWallpapers" style="width: 35px;">X</button>
+    <div class="panel-header-drag" id="wallpapersDragHeader">
+        <span>🖼️ Wallpaper Hub</span>
+        <span style="font-size: 0.65rem; color: #a1a1aa;">● Drag Handle</span>
+    </div>
+    <div class="panel-body-content">
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1.2fr; gap: 0.4rem;">
+            <button id="btnCycleWallpaper" type="button" style="font-size: 0.85rem; padding: 0.5rem 0;">🔄 Cycle</button>
+            <button id="btnRandomWallpaper" type="button" style="font-size: 0.85rem; padding: 0.5rem 0;">🎲 Random</button>
+            <button id="btnFetchAndAppendRandom" type="button" style="font-size: 0.85rem; padding: 0.5rem 0; background: #e0f2fe; color: #0369a1;">➕ Add Random</button>
+        </div>
+        
+        <div class="tool-row">
+            <label>Active Wallpaper Stack</label>
+            <div class="wallpaper-manager-list" id="wallpaperRegistryDOM">
+                </div>
+        </div>
+
+        <div class="tool-row" style="border-top: 1px solid rgba(0,0,0,0.1); padding-top: 0.5rem;">
+            <label>Insert New Image Link</label>
+            <div style="display: flex; gap: 0.4rem;">
+                <input type="text" id="inputWallpaperUrl" placeholder="Paste link (https://...)" style="font-size: 0.9rem; padding: 0.4rem; width: 70%;">
+                <button id="btnAddWallpaper" type="button" style="padding: 0.4rem; font-size: 0.9rem; width: 30%;">Add Link</button>
+            </div>
+        </div>
+
+        <div class="tool-row" style="border-top: 1px solid rgba(0,0,0,0.15); padding-top: 0.65rem; gap: 0.4rem;">
+            <label>Wallpaper Set</label>
+            <input type="text" id="exportUserName" placeholder="User Name (e.g., KMAHADH)" style="font-size: 0.85rem; padding: 0.4rem;">
+            <input type="text" id="exportListName" placeholder="Manifest Label (e.g., Cyberpunk Set)" style="font-size: 0.85rem; padding: 0.4rem;">
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem; margin-top: 0.25rem;">
+                <button id="btnExportWallpapers" type="button" style="padding: 0.5rem; font-size: 0.9rem; background: #f4f4f5; color: #27272a;">📤 Save List</button>
+                <button id="btnTriggerWallpaperLoad" type="button" style="padding: 0.5rem; font-size: 0.9rem; background: #f4f4f5; color: #27272a;">📥 Load List</button>
+            </div>
+            <input type="file" id="wallpaperFileLoaderInput" class="hidden" accept=".txt">
+        </div>
+    </div>
+</div>
+
+        <div class="glass-panel" id="floating-tools">
+            <button class="close-modal-btn" id="closeTools" style="width: 35px;">X</button>
+            <div class="panel-header-drag" id="toolsDragHeader">
+                <span>⚙️ Configuration Console</span>
+                <span style="font-size: 0.65rem; color: #a1a1aa;">● Drag Handle</span>
+            </div>
+            
+            <div class="panel-body-content">
+                <div class="tool-row">
+                    <label>System Typography</label>
+                    <select id="FNT-TYP">
+                        <option value="Arial">Arial Standard</option>
+                        <option value="Lucida Console">Lucida Console Terminal</option>
+                        <option value="Times New Roman">Classic Times Serif</option>
+                        <option value="Impact">Impact Bold Header</option>
+                        <option value="Ubuntu-Light">Ubuntu Monospace Light</option>
+                        <option value="Ubuntu-Bold">Ubuntu Monospace Bold</option>
+                    </select>
+                </div>
+
+                <div class="tool-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+                    <div>
+                        <label>ALIGNMENT</label>
+                        <select id="TXT-JST">
+                            <option value="left">Left Alignment</option>
+                            <option value="center">Center Axis</option>
+                            <option value="right">Right Alignment</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>FONT SCALE</label>
+                        <select id="TXT-SZE">
+                            <option value="2rem">Standard</option>
+                            <option value="14px">Fine Scale (14)</option>
+                            <option value="18px">Medium Scale (18)</option>
+                            <option value="26px">Large Scale (26)</option>
+                            <option value="36px">Magnified Scale (36)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="tool-row">
+                    <label>High Contrast Presets Matrix</label>
+                    <select id="scma">
+                        <option value="custom">Manual Workspace Color Overrides</option>
+                        <option value="white-black">Default High Tone (Black/White)</option>
+                        <option value="black-white">Terminal Low Tone (White/Black)</option>
+                        <option value="green-black">Matrix Monolith (Green/Black)</option>
+                        <option value="yellow-navy">Naval Fleet Space (Yellow/Blue)</option>
+                    </select>
+                </div>
+
+                <div id="customColorSelectors" class="tool-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+                    <div>
+                        <label>TEXT COLOR</label>
+                        <select id="FG-COLOR"></select>
+                    </div>
+                    <div>
+                        <label>BG COLOR</label>
+                        <select id="BG-COLOR"></select>
+                    </div>
+                </div>
+
+                <button id="btnReset" type="button" style="margin-top: 0.25rem;">Reset Settings</button>
+            </div>
         </div>
     </main>
 
-    <footer>
-        <div class="telemetry-rack">
-            <span>Words: <strong id="wordCount">0</strong></span>
-            <span>Characters: <strong id="charCount">0</strong></span>
+    <div id="overlayThesaurus" class="reference-overlay">
+        <button class="close-modal-btn" id="closeThesaurus">X</button>
+        <iframe id="thesaurusIframe" src="about:blank"></iframe>
+    </div>
+
+    <div id="overlayDictionary" class="reference-overlay">
+        <button class="close-modal-btn" id="closeDictionary">X</button>
+        <iframe id="dictionaryIframe" src="about:blank"></iframe>
+    </div>
+
+    <div id="clarity-overlay"></div>
+    
+    <div id="customConfirmModal" class="reference-overlay" style="display: none; height: auto; max-width: 450px; top: 35%; left: 35%; padding: 1.5rem; background: rgba(255,255,255,0.95); backdrop-filter: blur(16px); z-index: 1000;">
+    <h3 style="margin-bottom: 0.5rem; font-size: 1.2rem; border-bottom: var(--glass-border); padding-bottom: 0.25rem;">📋 Manifest Ingestion Profile</h3>
+    <p id="customModalBodyText" style="font-size: 0.95rem; line-height: 1.4; margin-bottom: 1.25rem; font-family: monospace; white-space: pre-line;"></p>
+   
+    
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+        <button id="btnModalAppend" type="button" style="padding: 0.6rem; font-size: 0.9rem; background: #e0f2fe; color: #0369a1; border: var(--glass-border);">➕ Append to List</button>
+        <button id="btnModalReplace" type="button" style="padding: 0.6rem; font-size: 0.9rem; background: #fee2e2; color: #b91c1c; border: var(--glass-border);">🔄 Replace Entirely</button>
+    </div>
+    <button id="btnModalCancel" type="button" style="width: 100%; margin-top: 0.5rem; padding: 0.4rem; font-size: 0.85rem; background: #f4f4f5; color: #71717a; border: 1px solid #d4d4d8;">Cancel Operation</button>
+</div>
+
+
+<div id="saveIntentModal" class="reference-overlay saveModal" style="display: none; height: auto; max-width: 420px; top: 35%; left: 35%; padding: 1.5rem; background: rgba(255,255,255,0.95); backdrop-filter: blur(16px); z-index: 1000;">
+        <h3 style="margin-bottom: 0.5rem; font-size: 1.2rem; border-bottom: var(--glass-border); padding-bottom: 0.25rem;">💾 Save Document Protocol</h3>
+        <p style="font-size: 0.9rem; line-height: 1.4; margin-bottom: 1.25rem; font-family: monospace; color: #444;">
+            Choose how you would like to package this file. Embedding the environmental profile allows ProText to restore your fonts, colors, and wallpaper next time you load it.
+        </p>
+        
+        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+            <button id="btnConfirmSaveRaw" class="stdBtn" type="button" style="padding: 0.6rem; font-size: 0.95rem; --bg:#ffffff; --fg:#000000; border: var(--glass-border);">📄 Save Raw Clean Text</button>
+            <button id="btnConfirmSaveEmbedded" class="stdBtn" type="button" style="padding: 0.6rem; font-size: 0.95rem; --bg:#e0f2fe; --fg:#0369a1; border: var(--glass-border); font-weight: bold;">📦 Embed Workspace Layout</button>
         </div>
-        <div class="status-pill">
-            <span class="indicator-dot" id="statusIndicator"></span>
-            <span id="statusText">Workspace Running</span>
-        </div>
-    </footer>
+        <button id="btnCancelSaveIntent" class="stdBtn" type="button" style="width: 100%; margin-top: 0.75rem; padding: 0.4rem; font-size: 0.85rem; --bg:#f4f4f5; --fg:#71717a; border: 1px solid #d4d4d8;">Cancel</button>
+    </div>
+
+
+
+<div id="customContextMenu" class="custom-menu hidden">
+    <div class="menu-item" id="ctxUndo">↩️ Undo</div>
+    <div class="menu-item" id="ctxRedo">↪️ Redo</div>
+    <hr class="menu-divider">
+    <div class="menu-item" id="ctxCut">✂️ Cut</div>
+    <div class="menu-item" id="ctxCopy">📋 Copy</div>
+    <div class="menu-item" id="ctxPaste">📥 Paste</div>
+    <div class="menu-item" id="ctxSelectAll">全 Select All</div>
+    <hr class="menu-divider">
+
+    <div class="menu-item" id="ctxSearchGoogle">🌐 Search Google</div>
+    <div class="menu-item" id="ctxTranslate">🔮 Translate Text</div>
+    <hr class="menu-divider">
+    <div class="menu-item" id="ctxBulletList">• Bullet Selection</div>
+    <div class="menu-item" id="ctxNumberedList">1. Number Selection</div>
+    <hr class="menu-divider">
+    <div class="menu-item" id="ctxUpperCase">🔠 UPPERCASE</div>
+    <div class="menu-item" id="ctxLowerCase">🔡 lowercase</div>
+    <div class="menu-item" id="ctxTitleCase">✍️ Title Case</div>
+    <hr class="menu-divider">
+    <div class="menu-item" id="ctxClearWorkspace">📄 Clear Workspace</div>
+</div>
+
+
 
     <script>
-        const workspace = document.getElementById('workspace');
-        const wordCount = document.getElementById('wordCount');
-        const charCount = document.getElementById('charCount');
-        const fontSelector = document.getElementById('fontSelector');
-        const sizeSelector = document.getElementById('sizeSelector');
-        const clearBtn = document.getElementById('clearBtn');
-        const downloadBtn = document.getElementById('downloadBtn');
-        const statusIndicator = document.getElementById('statusIndicator');
-        const statusText = document.getElementById('statusText');
+        const dom = {
+        
+            saveIntentModal: document.getElementById('saveIntentModal'),
+            btnConfirmSaveRaw: document.getElementById('btnConfirmSaveRaw'),
+            btnConfirmSaveEmbedded: document.getElementById('btnConfirmSaveEmbedded'),
+            btnCancelSaveIntent: document.getElementById('btnCancelSaveIntent'),
+            btnSave: document.getElementById('saveWorkspaceFile'),
+        
+        
+            body: document.getElementById('mainBody'),
+            title: document.getElementById('title'),
+            ext: document.getElementById('ext'),
+            content: document.getElementById('content'),
+            leftTel: document.getElementById('leftTelemetry'),
+            rightTel: document.getElementById('rightTelemetry'),
+            toolsPanel: document.getElementById('floating-tools'),
+            toolsHeader: document.getElementById('toolsDragHeader'),
+            wallpapersPanel: document.getElementById('floating-wallpapers'),
+            wallpapersHeader: document.getElementById('wallpapersDragHeader'),
+            wallpaperContainer: document.getElementById('wallpaperRegistryDOM'),
+            sidebarConfigBtn: document.getElementById('btnConfig'),
+            sidebarWallpaperBtn: document.getElementById('btnWallpaperMenu'),
+            sidebarSpellBtn: document.getElementById('btnSpellcheck'),
+            sidebarAutoBtn: document.getElementById('btnAutocomplete'),
+            sidebarThesBtn: document.getElementById('btnThesaurus'),
+            sidebarDictBtn: document.getElementById('btnDictionary'),
+            workspaceMain: document.getElementById('workspaceMain'),
+            fgSelect: document.getElementById('FG-COLOR'),
+            bgSelect: document.getElementById('BG-COLOR'),
+            schemeSelect: document.getElementById('scma'),
+            fontSelect: document.getElementById('FNT-TYP'),
+            alignSelect: document.getElementById('TXT-JST'),
+            sizeSelect: document.getElementById('TXT-SZE'),
+            iframeThes: document.getElementById('thesaurusIframe'),
+            iframeDict: document.getElementById('dictionaryIframe'),
+            modalThes: document.getElementById('overlayThesaurus'),
+            modalDict: document.getElementById('overlayDictionary'),
+            clarityShield: document.getElementById('clarity-overlay'),
+            fileInput: document.getElementById('fileToLoad')
+        };
 
-        let autoSaveTimeout;
+        const palette = ["Black", "White", "Gray", "Silver", "Olive", "Green", "Lime", "Teal", "Aqua", "Blue", "Navy", "Red", "Yellow"];
+        
+        const styleSchemes = {
+            'white-black': { fg: 'black', bg: 'white' },
+            'black-white': { fg: 'white', bg: 'black' },
+            'green-black': { fg: 'lime',  bg: 'black' },
+            'yellow-navy':  { fg: 'yellow', bg: 'navy' }
+        };
 
-        // --- CORE TELEMETRY TRACKER ---
-        function updateTelemetry() {
-            const text = workspace.value;
+        const rgbChannels = {
+            "black": "0, 0, 0", "white": "255, 255, 255", "gray": "128, 128, 128", "silver": "192, 192, 192",
+            "olive": "128, 128, 0", "green": "0, 128, 0", "lime": "0, 255, 0", "teal": "0, 128, 128",
+            "aqua": "0, 255, 255", "blue": "0, 0, 255", "navy": "0, 0, 128", "red": "255, 0, 0", "yellow": "255, 255, 0"
+        };
+
+        // Persistent Hardcoded Default Fallbacks
+        const nativeWallpapers = [
+            "http://getwallpapers.com/wallpaper/full/1/7/b/984444-new-color-hd-wallpaper-1920x1080-windows-10.jpg",
+            "https://images.wallpapersden.com/image/download/windows-10-unlocked-official_bWptZ2mUmZqaraWkpJRmbmdlrWZlbWY.jpg"
+        ];
+        
+        // Look for Configuration Data
+        const PROTEXT_BEGIN =
+        "\n\n-----BEGIN PROTEXT CONFIG-----\n";
+
+        const PROTEXT_END =
+        "\n-----END PROTEXT CONFIG-----";
+
+        let wallpaperViews = [];
+        let wallpaperIndex = 0;
+        let clarityState = 0; 
+        let opacityStep = 0;  
+        let autocompleteActive = false;
+        let autoSaveDebounceTimeout;
+
+        function bootstrapApp() {
+            palette.forEach(color => {
+                dom.fgSelect.add(new Option(color, color.toLowerCase()));
+                dom.bgSelect.add(new Option(color, color.toLowerCase()));
+            });
+
+            dom.fgSelect.value = "black";
+            dom.bgSelect.value = "white";
+
+// 1. Create a dynamic synchronization callback
+            const syncTabAndCache = () => {
+                const docTitle = dom.title.value.trim() || "Untitled";
+                const docExt = dom.ext.value.trim() || "TXT";
+                
+                // Concurrently joins title + dot + custom extension on the browser tab
+                document.title = `ProText // ${docTitle}.${docExt}`;
+                
+                // Commits both fields to independent localStorage entries
+                localStorage.setItem('protext_cached_title', dom.title.value);
+                localStorage.setItem('protext_cached_ext', dom.ext.value);
+            };
+
+            // 2. Attach the callback to handle BOTH inputs seamlessly
+            dom.title.addEventListener('input', syncTabAndCache);
+            dom.ext.addEventListener('input', syncTabAndCache);
+
+// Hook the adjustment up to BOTH input elements
+dom.title.addEventListener('input', syncTabAndCache);
+dom.ext.addEventListener('input', syncTabAndCache);
+
+
+
+            dom.content.addEventListener('input', () => {
+                runTelemetryPipe();
+                queueAutoSave();
+            });
+
+            dom.content.addEventListener('keyup', updateCaretPosition);
+            dom.content.addEventListener('click', updateCaretPosition);
+            dom.content.addEventListener('keydown', runAutocompleteEngine);
+
+            attachEventIntersects();
+            makePanelDraggable(dom.toolsPanel, dom.toolsHeader);
+            makePanelDraggable(dom.wallpapersPanel, dom.wallpapersHeader);
             
-            // Calculate absolute characters
-            charCount.textContent = text.length;
-
-            // Calculate words cleanly while matching whitespaces
-            const cleanText = text.trim();
-            const words = cleanText === '' ? 0 : cleanText.split(/\s+/).length;
-            wordCount.textContent = words;
+            initializeWallpaperMemoryPipeline();
+            restoreCachedSession();
         }
 
-        // --- LOCAL STORAGE AUTO-SAVE LOOPS ---
-        function triggerAutoSave() {
-            statusIndicator.className = "indicator-dot typing";
-            statusText.textContent = "Typing...";
+// --- UPGRADED LIVE SELECTION & SYSTEM METRICS TERMINAL PIPE ---
+        function runTelemetryPipe() {
+            const rawText = dom.content.value;
+            
+            // Capture current selection bounds
+            const start = dom.content.selectionStart;
+            const end = dom.content.selectionEnd;
+            const selectedText = rawText.substring(start, end).trim();
+            
+            let words, chars, lines, scopeLabel;
 
-            clearTimeout(autoSaveTimeout);
-
-            // Debounce input updates for 500ms to save drive read/write cycles
-            autoSaveTimeout = setTimeout(() => {
-                localStorage.setItem('protext_workspace_buffer', workspace.value);
-                statusIndicator.className = "indicator-dot saved";
-                statusText.textContent = "Workspace Saved Locally";
-            }, 500);
+            if (selectedText.length > 0) {
+                // SELECTION ACTIVE METRICS
+                words = selectedText.split(/\s+/).filter(w => w.length > 0).length;
+                chars = dom.content.value.substring(start, end).length; // Include internal spaces for accuracy
+                lines = dom.content.value.substring(start, end).split('\n').length;
+                scopeLabel = `<span style="opacity: 0.5;"> CURRENT SELECTION | </span>`;
+            } else {
+                // ENTIRE DOCUMENT METRICS
+                words = rawText.trim() === "" ? 0 : rawText.trim().split(/\s+/).length;
+                chars = rawText.length;
+                lines = rawText.split('\n').length;
+                scopeLabel = `<span style="opacity: 0.5;">DOC TOTAL | </span>`;
+            }
+            
+            const now = new Date();
+            const dayName = now.toLocaleDateString([], { weekday: 'short' }).toUpperCase();
+            const dateString = now.toLocaleDateString([], { month: '2-digit', day: '2-digit', year: 'numeric' });
+            const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+            const formattedDateTime = `${dayName} ${dateString} @ ${timeString}`;
+            
+            const isOnline = navigator.onLine;
+            const networkBadge = isOnline 
+                ? `<span style="color: #22c55e; font-weight: 800;">● ONLINE</span>` 
+                : `<span style="color: #ef4444; font-weight: 800;">● OFFLINE</span>`;
+            
+            dom.leftTel.innerHTML = `${scopeLabel} WORDS: <strong>${words}</strong> &nbsp;|&nbsp; CHARACTERS: <strong>${chars}</strong> &nbsp;|&nbsp; LINES: <strong>${lines}</strong> &nbsp;|&nbsp; <span>${formattedDateTime}</span> &nbsp;|&nbsp; ${networkBadge}`;
         }
 
-        // --- NATIVE SYSTEM I/O OPERATIONS ---
-        function executeDownload() {
-            const payload = workspace.value;
-            if (!payload.trim()) {
-                alert("Cannot export an empty system document workspace buffer.");
+        function updateCaretPosition() {
+            const text = dom.content.value;
+            const selStart = dom.content.selectionStart;
+            const linesUpToCaret = text.substring(0, selStart).split('\n');
+            const currentLine = linesUpToCaret.length;
+            const currentCol = linesUpToCaret[linesUpToCaret.length - 1].length + 1;
+            
+            let currentModeName = "Default Workspace";
+            if (opacityStep === 1) currentModeName = "Solid Glass";
+            if (opacityStep === 2) currentModeName = "Frosted Veil";
+            if (opacityStep === 3) currentModeName = "Pure HUD";
+            if (opacityStep === 4) currentModeName = "Minimalist Raw";
+
+            dom.rightTel.innerHTML = `Ln ${currentLine}, Col ${currentCol} &nbsp;|&nbsp; Workspace: <strong>${currentModeName}</strong>`;
+        }
+
+        // --- FIXED PERMANENT PERSISTENCE CACHING ARCHITECTURE ---
+        function initializeWallpaperMemoryPipeline() {
+            const cachedWallpapers = localStorage.getItem('protext_permanent_wallpapers');
+            
+            if (cachedWallpapers) {
+                wallpaperViews = JSON.parse(cachedWallpapers);
+            } else {
+                wallpaperViews = [...nativeWallpapers];
+                localStorage.setItem('protext_permanent_wallpapers', JSON.stringify(wallpaperViews));
+            }
+
+            const cachedActiveIndex = localStorage.getItem('protext_active_wallpaper_idx');
+            if (cachedActiveIndex !== null && cachedActiveIndex < wallpaperViews.length) {
+                wallpaperIndex = parseInt(cachedActiveIndex, 10);
+            } else {
+                wallpaperIndex = 0;
+            }
+
+            renderWallpaperManagerDOM();
+            applyActiveWallpaperView();
+        }
+
+function renderWallpaperManagerDOM() {
+    dom.wallpaperContainer.innerHTML = "";
+    
+    wallpaperViews.forEach((url, index) => {
+        const row = document.createElement('div');
+        
+        // Dynamic Class Check: Injects the active highlight class if it matches the current index
+        if (index === wallpaperIndex) {
+            row.className = "wallpaper-item-row active-wallpaper-node";
+        } else {
+            row.className = "wallpaper-item-row";
+        }
+        
+        const friendlyName = url === "none" ? "Solid Canvas Layout" : url;
+        row.innerHTML = `
+            <span title="${friendlyName}" style="cursor: pointer; width: 100%; display: inline-block;">
+                ${index === wallpaperIndex ? "➔ " : "" }Slot ${index + 1}: ${friendlyName}
+            </span>
+            <button type="button" class="delete-node-btn" data-index="${index}">❌</button>
+        `;
+        
+        // Clicking the text path selects that wallpaper instantly
+        row.querySelector('span').addEventListener('click', () => {
+            wallpaperIndex = index;
+            localStorage.setItem('protext_active_wallpaper_idx', wallpaperIndex);
+            
+            // Re-render immediately to update visual indicators
+            renderWallpaperManagerDOM();
+            applyActiveWallpaperView();
+        });
+
+        // Deletes link from ecosystem registry
+        row.querySelector('.delete-node-btn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            removeWallpaperNodeAsset(index);
+        });
+
+        dom.wallpaperContainer.appendChild(row);
+    });
+}
+
+        function removeWallpaperNodeAsset(targetIndex) {
+            if (wallpaperViews.length <= 1) {
+                alert("Registry fault: System requires at least 1 background asset matrix active.");
                 return;
             }
 
-            const textBlob = new Blob([payload], { type: 'text/plain' });
-            const downloadLink = document.createElement('a');
+            wallpaperViews.splice(targetIndex, 1);
             
-            // Format dynamic backup title filename
-            const stamp = new Date().toISOString().slice(0,10);
-            downloadLink.download = `protext_export_${stamp}.txt`;
-            downloadLink.href = window.URL.createObjectURL(textBlob);
-            downloadLink.style.display = 'none';
+            // Re-align index calculations out of bounds faults
+            if (wallpaperIndex >= wallpaperViews.length) {
+                wallpaperIndex = wallpaperViews.length - 1;
+            }
+
+            localStorage.setItem('protext_permanent_wallpapers', JSON.stringify(wallpaperViews));
+            localStorage.setItem('protext_active_wallpaper_idx', wallpaperIndex);
             
-            document.body.appendChild(downloadLink);
-            downloadLink.click();
-            document.body.removeChild(downloadLink);
+            renderWallpaperManagerDOM();
+            applyActiveWallpaperView();
         }
 
-        function clearWorkspace() {
-            if (confirm("Are you entirely sure you want to flush the active workspace buffer? This clears local browser caches.")) {
-                workspace.value = '';
-                localStorage.removeItem('protext_workspace_buffer');
-                updateTelemetry();
-                statusIndicator.className = "indicator-dot";
-                statusText.textContent = "Workspace Flushed Clean";
-            }
-        }
-
-        // --- SYSTEM CONFIGURATION APPLIERS ---
-        fontSelector.addEventListener('change', () => {
-            workspace.style.fontFamily = fontSelector.value;
-            localStorage.setItem('protext_pref_font', fontSelector.value);
-        });
-
-        sizeSelector.addEventListener('change', () => {
-            workspace.style.fontSize = sizeSelector.value;
-            localStorage.setItem('protext_pref_size', sizeSelector.value);
-        });
-
-        // --- LIFECYCLE INITIALIZATION BOOTSTRAP ---
-        function bootstrapApplication() {
-            // Restore text buffer context
-            const savedBuffer = localStorage.getItem('protext_workspace_buffer');
-            if (savedBuffer !== null) {
-                workspace.value = savedBuffer;
-            }
-
-            // Restore custom font families configurations
-            const savedFont = localStorage.getItem('protext_pref_font');
-            if (savedFont !== null) {
-                fontSelector.value = savedFont;
-                workspace.style.fontFamily = savedFont;
-            }
-
-            // Restore text size layouts configurations
-            const savedSize = localStorage.getItem('protext_pref_size');
-            if (savedSize !== null) {
-                sizeSelector.value = savedSize;
-                workspace.style.fontSize = savedSize;
-            }
-
-            updateTelemetry();
+        function applyActiveWallpaperView() {
+            const activeAsset = wallpaperViews[wallpaperIndex];
             
-            if(savedBuffer) {
-                statusIndicator.className = "indicator-dot saved";
-                statusText.textContent = "Restored Context from Cache";
+            if (activeAsset === "none" || !activeAsset) {
+                dom.body.style.backgroundImage = "none";
+                dom.body.style.backgroundColor = "#f3f4f6";
+            } else {
+                dom.body.style.backgroundImage = `url('${activeAsset}')`;
+                dom.body.style.backgroundColor = "transparent";
+            }
+            updateCaretPosition();
+        }
+        
+        
+        // --- AUTOMATED RANDOM FETCH AND APPEND ENGINE ---
+document.getElementById('btnFetchAndAppendRandom').addEventListener('click', async () => {
+    // 1. Notify the telemetry bar that an external network call is active
+    dom.rightTel.innerHTML = `Connecting to image stream server...`;
+    
+    // Target high-res desktop (4K) resolution scale
+    const generatorUrl = "https://picsum.photos/3840/2160";
+
+    try {
+        // 2. Ping the image generator in the background. 
+        // The browser handles the 302 redirect chain natively.
+        const response = await fetch(generatorUrl);
+        
+        if (!response.ok) throw new Error("Server rejected image stream handshake.");
+        
+        // 3. 'response.url' holds the exact, unique destination photo path from Unsplash!
+        const uniqueResolvedPhotoUrl = response.url;
+
+        // 4. Structural Guardrail: Prevent duplicates from cluttering the data array
+        if (wallpaperViews.includes(uniqueResolvedPhotoUrl)) {
+            dom.rightTel.innerHTML = `Duplicate prevented. Re-trying...`;
+            // Silently re-trigger a click to try again if a duplicate occurs
+            document.getElementById('btnFetchAndAppendRandom').click();
+            return;
+        }
+
+        // 5. Append the unique path to the persistent array matrix
+        wallpaperViews.push(uniqueResolvedPhotoUrl);
+        
+        // 6. Set the active pointer index directly onto the brand new wallpaper slot
+        wallpaperIndex = wallpaperViews.length - 1;
+
+        // 7. Commit changes to browser local cache memory permanently
+        localStorage.setItem('protext_permanent_wallpapers', JSON.stringify(wallpaperViews));
+        localStorage.setItem('protext_active_wallpaper_idx', wallpaperIndex);
+
+        // 8. Re-render the side bar list UI and update the screen viewport background in lockstep
+        renderWallpaperManagerDOM();
+        applyActiveWallpaperView();
+
+        dom.rightTel.innerHTML = `Successfully Appended Slot ${wallpaperViews.length}!`;
+
+    } catch (error) {
+        console.error("Network or CORS exception caught during asset capture:", error);
+        alert("Network Interface Fault: Could not fetch a random image. Check your internet connectivity connection.");
+        updateCaretPosition();
+    }
+});
+        
+
+        function queueAutoSave() {
+            dom.rightTel.innerHTML = `Typing...`;
+            clearTimeout(autoSaveDebounceTimeout);
+            autoSaveDebounceTimeout = setTimeout(() => {
+                localStorage.setItem('protext_cached_buffer', dom.content.value);
+                updateCaretPosition();
+            }, 400);
+        }
+
+        function restoreCachedSession() {
+        // Restore Title
+            const cachedTitle = localStorage.getItem('protext_cached_title');
+            if (cachedTitle !== null) {
+                dom.title.value = cachedTitle;
+            } else {
+                dom.title.value = ""; // or your desired default title string
+            }
+
+        // ADD THIS BLOCK: Restore Extension
+            const cachedExt = localStorage.getItem('protext_cached_ext');
+            if (cachedExt !== null) {
+                dom.ext.value = cachedExt;
+            } else {
+                dom.ext.value = "TXT"; // Clean default fallback
+            }
+
+        // Force your tab title synchronizer to run once on load
+            if (typeof syncTabAndCache === "function") {
+                syncTabAndCache();
+             } else {
+        // Fallback title assembly if called before listeners assign
+            const t = dom.title.value.trim() || "Untitled";
+            const e = dom.ext.value.trim() || "TXT";
+            document.title = `ProText // ${t}.${e}`;
+            }
+}
+
+        // --- CONSOLE FILE SUBPROCESS I/O CONTROLLERS ---
+        // Intercepts the original save operation to prompt the choice modal
+        function saveWorkspaceFile() {
+            dom.saveIntentModal.style.display = "flex";
+        }
+
+        // OPTION A: Exports your raw text buffer cleanly
+        function saveWorkspaceFileRaw() {
+            const blob = new Blob([dom.content.value], { type: 'text/plain;charset=utf-8' });
+            const cleanTitle = dom.title.value.trim().replace(/\s+/g, '_') || "UNTITLED";
+            const cleanExt = dom.ext.value.trim().replace(/\s+/g, '_').toLowerCase() || "txt";
+            
+            triggerDownloadStream(blob, `${cleanTitle}.${cleanExt}`);
+        }
+
+        // OPTION B: Packages text data alongside complete UI/UX parameters 
+        function saveWorkspaceFileEmbedded() {
+
+           const cleanTitle =
+                dom.title.value.trim().replace(/\s+/g, '_') || "UNTITLED";
+
+            const cleanExt =
+                dom.ext.value.trim().replace(/\s+/g, '_').toLowerCase() || "txt";
+
+            let manifest = "";
+
+            manifest += PROTEXT_BEGIN;
+
+            manifest += `TITLE=${dom.title.value}\n`;
+             manifest += `EXTENSION=${dom.ext.value}\n`;
+
+            manifest += `FONT=${dom.fontSelect.value}\n`;
+            manifest += `ALIGNMENT=${dom.alignSelect.value}\n`;
+            manifest += `SCALE=${dom.sizeSelect.value}\n`;
+
+           manifest += `SCHEME=${dom.schemeSelect.value}\n`;
+           manifest += `FGCOLOR=${dom.fgSelect.value}\n`;
+           manifest += `BGCOLOR=${dom.bgSelect.value}\n`;
+
+           manifest += `CLARITYSTATE=${clarityState}\n`;
+           manifest += `OPACITYSTEP=${opacityStep}\n`;
+
+           manifest += `ACTIVE_WALLPAPER=${wallpaperIndex}\n`;
+
+           wallpaperViews.forEach((url, index) => {
+           manifest += `WALLPAPER_${index}=${url}\n`;
+         });
+
+    manifest += `TIMESTAMP=${new Date().toISOString()}\n`;
+
+    manifest += PROTEXT_END;
+
+    console.log(manifest);
+
+    const fileContents = dom.content.value + manifest;
+    
+    
+
+    const blob =
+        new Blob([fileContents], {
+            type: 'text/plain;charset=utf-8'
+        });
+
+    triggerDownloadStream(
+        blob,
+        `${cleanTitle}.${cleanExt}`
+    );
+}
+
+        // Reusable pipeline asset to perform the browser download task
+        function triggerDownloadStream(blob, localizedFileName) {
+            const fileAnchor = document.createElement('a');
+            fileAnchor.download = localizedFileName;
+            fileAnchor.href = URL.createObjectURL(blob);
+            fileAnchor.click();
+            URL.revokeObjectURL(fileAnchor.href);
+            dom.saveIntentModal.style.display = "none"; // Auto-close modal context
+        }
+
+function ingestEmbeddedManifest(
+    documentText,
+    manifestText
+) {
+
+    console.log(
+        "ingestEmbeddedManifest() called"
+    );
+
+    const config = {};
+
+    manifestText
+        .split('\n')
+        .forEach(line => {
+
+            const idx =
+                line.indexOf('=');
+
+            if (idx === -1) return;
+
+            const key =
+                line.substring(0, idx).trim();
+
+            const value =
+                line.substring(idx + 1).trim();
+
+            config[key] = value;
+        });
+
+    const restoredWallpapers = [];
+
+    Object.keys(config)
+        .filter(key =>
+            key.startsWith('WALLPAPER_')
+        )
+        .sort(
+            (a, b) =>
+                Number(a.split('_')[1]) -
+                Number(b.split('_')[1])
+        )
+        .forEach(key => {
+            restoredWallpapers.push(
+                config[key]
+            );
+        });
+
+    const payload = {
+
+        title:
+            config.TITLE || "UNTITLED",
+
+        extension:
+            config.EXTENSION || "TXT",
+
+        buffer:
+            documentText,
+
+        config: {
+
+            font:
+                config.FONT || "Arial",
+
+            alignment:
+                config.ALIGNMENT || "left",
+
+            scale:
+                config.SCALE || "2rem",
+
+            scheme:
+                config.SCHEME || "custom",
+
+            fgColor:
+                config.FGCOLOR || "black",
+
+            bgColor:
+                config.BGCOLOR || "white"
+        },
+
+        environment: {
+
+            activeWallpaperIndex:
+                Number(
+                    config.ACTIVE_WALLPAPER || 0
+                ),
+
+            wallpaperRegistry:
+                restoredWallpapers,
+
+            clarityState:
+                Number(
+                    config.CLARITYSTATE || 0
+                ),
+
+            opacityStep:
+                Number(
+                    config.OPACITYSTEP || 0
+                )
+        }
+    };
+
+    console.log(
+        "Reconstructed Payload:",
+        payload
+    );
+
+    ingestEnvironmentManifestPackage(
+        payload
+    );
+}
+
+function readWorkspaceFile(e) {
+
+    const uploadedFile =
+        e.target.files[0];
+
+    if (!uploadedFile) return;
+
+    const reader =
+        new FileReader();
+
+    reader.onload = function(event) {
+
+        const fileRawContent =
+            event.target.result;
+
+        try {
+
+            const manifestStart =
+                fileRawContent.indexOf(
+                    PROTEXT_BEGIN
+                );
+
+            const manifestEnd =
+                fileRawContent.indexOf(
+                    PROTEXT_END
+                );
+
+            if (
+                manifestStart !== -1 &&
+                manifestEnd !== -1
+            ) {
+
+                const documentText =
+                    fileRawContent.substring(
+                        0,
+                        manifestStart
+                    );
+
+                const manifestText =
+                    fileRawContent.substring(
+                        manifestStart +
+                        PROTEXT_BEGIN.length,
+                        manifestEnd
+                    );
+
+    console.log("FOUND MANIFEST");
+
+                ingestEmbeddedManifest(
+                    documentText,
+                    manifestText
+                );
+
+                return;
+            }
+
+        } catch(err) {
+
+            console.error(
+                "Manifest Parse Failure:",
+                err
+            );
+        }
+
+        // Plain text fallback
+
+        dom.content.value =
+            fileRawContent;
+
+        const fullFileName =
+            uploadedFile.name;
+
+        const lastDotIndex =
+            fullFileName.lastIndexOf('.');
+
+        if (
+            lastDotIndex !== -1 &&
+            lastDotIndex > 0
+        ) {
+
+            dom.title.value =
+                fullFileName.substring(
+                    0,
+                    lastDotIndex
+                );
+
+            dom.ext.value =
+                fullFileName
+                    .substring(
+                        lastDotIndex + 1
+                    )
+                    .toUpperCase();
+
+        } else {
+
+            dom.title.value =
+                fullFileName;
+
+            dom.ext.value =
+                "TXT";
+        }
+
+        finalizeIngestionState();
+
+    };
+
+    reader.readAsText(
+        uploadedFile
+    );
+}
+
+function applyActiveThemeScheme() {
+    const selectedScheme = dom.schemeSelect.value;
+    const rootStyle = document.documentElement.style;
+    
+    // 1. CLEAR all inline style overrides across elements so they don't lock up layout rendering
+    const clearTargets = [dom.content, dom.title, dom.ext, dom.leftTel, dom.rightTel];
+    clearTargets.forEach(element => {
+        if (element) {
+            element.style.background = "";
+            element.style.color = "";
+        }
+    });
+    
+    const titleInput = dom.title;
+    const extInput = dom.ext;
+    const leftTelemetry = dom.leftTel;
+    const rightTelemetry = dom.rightTel;
+
+    // 2. Directly update the theme layout states & CSS properties directly here
+    if (selectedScheme === "light") {
+        // Set the core global colors for the entire page layout grid
+        rootStyle.setProperty('--bg-color-rgb', '255, 255, 255');
+        rootStyle.setProperty('--text-main', '#000000');
+
+        // Apply clean light theme states to the elements
+        if (dom.content) dom.content.style.color = "#000000";
+        if (titleInput) titleInput.style.color = "#000000";
+        if (extInput) extInput.style.color = "#666666";
+        if (leftTelemetry) leftTelemetry.style.color = "#000000";
+        if (rightTelemetry) rightTelemetry.style.color = "#000000";
+        
+    } else if (selectedScheme === "dark") {
+        // Set the core global colors for the entire page layout grid
+        rootStyle.setProperty('--bg-color-rgb', '24, 24, 27'); // Custom dark gray mesh background
+        rootStyle.setProperty('--text-main', '#ffffff');
+
+        // Apply clean dark theme states to the elements
+        if (dom.content) dom.content.style.color = "#ffffff";
+        if (titleInput) titleInput.style.color = "#ffffff";
+        if (extInput) extInput.style.color = "#a1a1aa";
+        if (leftTelemetry) leftTelemetry.style.color = "#ffffff";
+        if (rightTelemetry) rightTelemetry.style.color = "#ffffff";
+        
+    } else if (selectedScheme === "custom") {
+        // Fallback option extraction utilizing your custom palette sliders if available
+        const customFg = dom.fgSelect ? dom.fgSelect.value : "#000000";
+        const customBg = dom.bgSelect ? dom.bgSelect.value : "225, 225, 255"; 
+        
+        rootStyle.setProperty('--text-main', customFg);
+        
+        // Convert hex background to RGB channels if necessary, or pass custom tokens
+        if (dom.bgSelect) {
+            // Assuming customBg is stored or converted to an RGB triple string format (e.g. "50, 50, 50")
+            rootStyle.setProperty('--bg-color-rgb', customBg); 
+        }
+
+        if (dom.content) dom.content.style.color = customFg;
+        if (titleInput) titleInput.style.color = customFg;
+        if (extInput) extInput.style.color = customFg;
+        if (leftTelemetry) leftTelemetry.style.color = customFg;
+        if (rightTelemetry) rightTelemetry.style.color = customFg;
+    }
+}
+
+function applyClarityShieldState() {
+    switch(clarityState) {
+        case 0:
+            dom.clarityShield.style.background = "transparent";
+            dom.clarityShield.style.backdropFilter = "none";
+            break;
+        case 1:
+            dom.clarityShield.style.background = "rgba(50, 50, 50, 0.4)";
+            dom.clarityShield.style.backdropFilter = "blur(4px)";
+            break;
+        case 2:
+            dom.clarityShield.style.background = "rgba(255, 255, 255, 0.4)";
+            dom.clarityShield.style.backdropFilter = "blur(4px)";
+            break;
+    }
+}
+
+function applyOpacityWorkspaceState() {
+    // Explicitly grab the root document element style matrix
+    const rootStyle = document.documentElement.style;
+    
+    switch(opacityStep) {
+        case 0: 
+            rootStyle.setProperty('--active-opacity', '0.85'); 
+            rootStyle.setProperty('--blur-amount', '12px'); 
+            break;
+        case 1: 
+            rootStyle.setProperty('--active-opacity', '0.90'); 
+            rootStyle.setProperty('--blur-amount', '12px'); 
+            break;
+        case 2: 
+            rootStyle.setProperty('--active-opacity', '0.50'); 
+            rootStyle.setProperty('--blur-amount', '8px');  
+            break;
+        case 3: 
+            rootStyle.setProperty('--active-opacity', '0.00'); 
+            rootStyle.setProperty('--blur-amount', '4px');  
+            break;
+        case 4: 
+            rootStyle.setProperty('--active-opacity', '0.00'); 
+            rootStyle.setProperty('--blur-amount', '0px');  
+            break;
+    }
+    
+    // Safely fire your text engine positioning calculations if ready
+    if (typeof updateCaretPosition === "function") {
+        updateCaretPosition();
+    }
+}
+
+        // Automatically alters your current typography, style settings, and skin properties
+        function ingestEnvironmentManifestPackage(data) {
+            dom.title.value = data.title || "UNTITLED";
+            dom.ext.value = data.extension || "TXT";
+            dom.content.value = data.buffer || "";
+
+            if (data.config) {
+                dom.fontSelect.value = data.config.font || "Arial";
+                dom.content.style.fontFamily = dom.fontSelect.value;
+                dom.alignSelect.value = data.config.alignment || "left";
+                dom.content.style.textAlign = dom.alignSelect.value;
+                dom.sizeSelect.value = data.config.scale || "2rem";
+                dom.content.style.fontSize = dom.sizeSelect.value;
+                dom.schemeSelect.value = data.config.scheme || "custom";
+                
+if (data.config.scheme === "custom") {
+
+    dom.fgSelect.value =
+        data.config.fgColor || "black";
+
+    dom.bgSelect.value =
+        data.config.bgColor || "white";
+
+    commitColorShift(
+        dom.fgSelect.value,
+        dom.bgSelect.value
+    );
+
+} else {
+
+    evaluateSchemePreset();
+}
+            }
+
+                function applySelectedColorScheme(schemeName) {
+
+                dom.schemeSelect.value = schemeName;
+
+                if (schemeName === "custom") {
+
+                    commitColorShift(
+                    dom.fgSelect.value,
+                    dom.bgSelect.value,
+
+                    
+                    );
+
+            return;
+    }
+
+    evaluateSchemePreset();
+}
+
+            if (data.environment) {
+                if (Array.isArray(data.environment.wallpaperRegistry)) {
+                    wallpaperViews = data.environment.wallpaperRegistry;
+                    localStorage.setItem('protext_permanent_wallpapers', JSON.stringify(wallpaperViews));
+                }
+                wallpaperIndex = data.environment.activeWallpaperIndex || 0;
+                localStorage.setItem('protext_active_wallpaper_idx', wallpaperIndex);
+                
+                clarityState = data.environment.clarityState || 0;
+                applyClarityShieldState();
+                
+                opacityStep = data.environment.opacityStep || 0;
+                applyOpacityWorkspaceState();
+
+                renderWallpaperManagerDOM();
+                applyActiveWallpaperView();
+                
+                applyActiveThemeScheme();
+                
+            }
+
+            finalizeIngestionState();
+        }
+
+        // Shared macro utility to update app state cleanly
+        function finalizeIngestionState() {
+            const finalTitle = dom.title.value.trim() || "Untitled";
+            const finalExt = dom.ext.value.trim() || "TXT";
+            document.title = `ProText // ${finalTitle}.${finalExt}`;
+            
+            localStorage.setItem('protext_cached_title', dom.title.value);
+            localStorage.setItem('protext_cached_ext', dom.ext.value);
+            localStorage.setItem('protext_cached_buffer', dom.content.value);
+            
+            runTelemetryPipe();
+            updateCaretPosition();
+        }
+
+
+        function clearWorkspaceCanvas() {
+            if (confirm("Flush full text buffer container workspace? This clears active cache memory.")) {
+                dom.content.value = ""; dom.title.value = "";
+                document.title = "ProText // Professional Workspace Console";
+                localStorage.removeItem('protext_cached_title');
+                localStorage.removeItem('protext_cached_buffer');
+                runTelemetryPipe();
+                updateCaretPosition();
             }
         }
 
-        // --- EVENT ATTACHMENTS ---
-        workspace.addEventListener('input', () => {
-            updateTelemetry();
-            triggerAutoSave();
+        // --- INTEGRATED AUTOCOMPLETE LOGIC MATRIX ---
+        function runAutocompleteEngine(e) {
+            if (!autocompleteActive || e.key !== 'Tab') return;
+            
+            const text = dom.content.value;
+            const caretPos = dom.content.selectionStart;
+            const words = text.substring(0, caretPos).split(/\s+/);
+            const currentLastWord = words[words.length - 1].toLowerCase();
+
+            if (currentLastWord.length < 2) return;
+
+            const sysDictionary = ["function", "development", "configuration", "telemetry", "interface", "workspace", "documentation", "dictionary", "environment", "repository", "automation"];
+            const matchedWord = sysDictionary.find(w => w.startsWith(currentLastWord));
+
+            if (matchedWord) {
+                e.preventDefault();
+                const remainder = matchedWord.substring(currentLastWord.length);
+                dom.content.setRangeText(remainder, caretPos, caretPos, 'end');
+                runTelemetryPipe();
+                queueAutoSave();
+            }
+        }
+
+        // --- BOUNDED FLOATING CONTAINER MOVE ENGINES ---
+        function makePanelDraggable(panel, handle) {
+            let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+            handle.onmousedown = dragMouseDown;
+
+            function dragMouseDown(e) {
+                e = e || window.event; e.preventDefault();
+                pos3 = e.clientX; pos4 = e.clientY;
+                document.onmouseup = closeDragElement;
+                document.onmousemove = elementDrag;
+            }
+
+            function elementDrag(e) {
+                e = e || window.event; e.preventDefault();
+                pos1 = pos3 - e.clientX; pos2 = pos4 - e.clientY;
+                pos3 = e.clientX;    pos4 = e.clientY;
+                
+                let newTop = panel.offsetTop - pos2;
+                let newLeft = panel.offsetLeft - pos1;
+
+                const maxLeft = dom.workspaceMain.clientWidth - panel.clientWidth;
+                const maxTop = dom.workspaceMain.clientHeight - panel.clientHeight;
+
+                if (newLeft < 0) newLeft = 0;
+                if (newTop < 0) newTop = 0;
+                if (newLeft > maxLeft) newLeft = maxLeft;
+                if (newTop > maxTop) newTop = maxTop;
+
+                panel.style.top = newTop + "px";
+                panel.style.left = newLeft + "px";
+                panel.style.right = "unset";
+            }
+
+            function closeDragElement() {
+                document.onmouseup = null; document.onmousemove = null;
+            }
+        }
+
+        // --- DICTIONARY IFRAME PIPELINES ---
+        function requestReferenceModal(mode) {
+            if (mode === 'thesaurus') {
+                // Toggle Logic: If it is already visible, collapse it cleanly
+                if (dom.modalThes.style.display === "flex") {
+                    dom.modalThes.style.display = "none";
+                    dom.sidebarThesBtn.classList.remove('active');
+                    updateActiveToolBackgroundMatrix();
+                    return;
+                }
+                
+                const selectedTerm = window.getSelection().toString().trim();
+                if (!selectedTerm) { alert(`Highlight a target term inside the active canvas area first.`); return; }
+                const cleanTerm = selectedTerm.toLowerCase();
+
+                dom.iframeThes.src = `https://en.m.wiktionary.org/wiki/${encodeURIComponent(cleanTerm)}#Synonyms`;
+                dom.modalThes.style.display = "flex";
+                dom.modalDict.style.display = "none"; // Hide sister frame
+                
+                dom.sidebarThesBtn.classList.add('active');
+                dom.sidebarDictBtn.classList.remove('active');
+                updateActiveToolBackgroundMatrix();
+                
+            } else {
+                // Toggle Logic: If it is already visible, collapse it cleanly
+                if (dom.modalDict.style.display === "flex") {
+                    dom.modalDict.style.display = "none";
+                    dom.sidebarDictBtn.classList.remove('active');
+                    updateActiveToolBackgroundMatrix();
+                    return;
+                }
+
+                const selectedTerm = window.getSelection().toString().trim();
+                if (!selectedTerm) { alert(`Highlight a target term inside the active canvas area first.`); return; }
+                const cleanTerm = selectedTerm.toLowerCase();
+
+                dom.iframeDict.src = `https://en.m.wiktionorg/wiki/${encodeURIComponent(cleanTerm)}`;
+                dom.modalDict.style.display = "flex";
+                dom.modalThes.style.display = "none"; // Hide sister frame
+                
+                dom.sidebarDictBtn.classList.add('active');
+                dom.sidebarThesBtn.classList.remove('active');
+                updateActiveToolBackgroundMatrix();
+            }
+        }
+
+        // --- INTERFACE CANVAS MODIFIERS ---
+        function updateTypographyLayout() {
+            const activeFont = dom.fontSelect.value;
+            if (activeFont.startsWith("Ubuntu-")) {
+                const weight = activeFont.split("-")[1];
+                dom.content.style.fontFamily = "'Ubuntu', monospace";
+                dom.content.style.fontWeight = weight === 'Bold' ? '700' : '300';
+            } else {
+                dom.content.style.fontFamily = activeFont;
+                dom.content.style.fontWeight = 'normal';
+            }
+            dom.title.style.fontFamily = dom.content.style.fontFamily;
+            dom.leftTel.style.fontFamily = dom.content.style.fontFamily;
+            dom.rightTel.style.fontFamily = dom.content.style.fontFamily;
+            dom.ext.style.fontFamily = dom.content.style.fontFamily;
+            
+            console.log(dom.ext);
+        }
+
+function commitColorShift(fg, bg) {
+
+    const rootStyle =
+        document.documentElement.style;
+
+    rootStyle.setProperty(
+        '--text-main',
+        fg
+    );
+
+    rootStyle.setProperty(
+        '--glass-bg',
+        bg
+    );
+
+    const rawRGB =
+        rgbChannels[
+            bg.toLowerCase()
+        ] || "255, 255, 255";
+
+    rootStyle.setProperty(
+        '--bg-color-rgb',
+        rawRGB
+    );
+    
+    rootStyle.setProperty(
+         '--glass-bg',
+         bg
+
+    );
+
+    dom.content.style.color = fg;
+    dom.title.style.color = fg;
+    dom.leftTel.style.color = fg;
+    dom.rightTel.style.color = fg;
+    dom.ext.style.color = fg;
+
+    dom.title.style.backgroundColor = bg;
+    dom.ext.style.backgroundColor = bg;
+    dom.leftTel.style.backgroundColor = bg;
+    dom.rightTel.style.backgroundColor = bg;
+
+    if (
+        typeof window.syncGutterColors ===
+        'function'
+    ) {
+        setTimeout(
+            window.syncGutterColors,
+            50
+        );
+    }
+    }
+
+        function evaluateSchemePreset() {
+            const targetPreset = dom.schemeSelect.value;
+            if (targetPreset === 'custom') return;
+
+            const settings = styleSchemes[targetPreset];
+            if (settings) {
+                dom.fgSelect.value = settings.fg;
+                dom.bgSelect.value = settings.bg;
+                commitColorShift(settings.fg, settings.bg);
+                
+                     if (typeof window.syncGutterColors === 'function') {
+            // A tiny timeout ensures the browser finishes rendering the main textarea's new CSS styles first
+            setTimeout(window.syncGutterColors, 50); 
+        }
+            }
+        }
+        
+        
+
+        // --- MAIN DOM EVENT WIREFRAME HANDLERS ---
+        function attachEventIntersects() {
+            document.getElementById('btnSave').addEventListener('click', saveWorkspaceFile);
+            document.getElementById('btnNew').addEventListener('click', clearWorkspaceCanvas);
+            document.getElementById('btnLoadTrigger').addEventListener('click', () => dom.fileInput.click());
+            dom.fileInput.addEventListener('change', readWorkspaceFile);
+
+            document.getElementById('btnConfirmSaveRaw')
+            .addEventListener('click', saveWorkspaceFileRaw);
+
+            document.getElementById('btnConfirmSaveEmbedded')
+            .addEventListener('click', saveWorkspaceFileEmbedded);
+
+            document.getElementById('btnCancelSaveIntent')
+            .addEventListener('click', () => {
+            dom.saveIntentModal.style.display = "none";
+            });
+
+            dom.sidebarThesBtn.addEventListener('click', () => requestReferenceModal('thesaurus'));
+            dom.sidebarDictBtn.addEventListener('click', () => requestReferenceModal('dictionary'));
+            
+            document.getElementById('closeThesaurus').addEventListener('click', () => {
+                dom.modalThes.style.display = "none";
+                dom.sidebarThesBtn.classList.remove('active');
+                updateActiveToolBackgroundMatrix();
+            });
+            document.getElementById('closeDictionary').addEventListener('click', () => {
+                dom.modalDict.style.display = "none";
+                dom.sidebarDictBtn.classList.remove('active');
+                updateActiveToolBackgroundMatrix();
+            });
+
+            // Draggable Panel Custom Close Hooks ("X")
+            document.getElementById('closeTools').addEventListener('click', () => {
+                dom.toolsPanel.classList.add('hidden');
+                dom.sidebarConfigBtn.classList.remove('active');
+            });
+            document.getElementById('closeWallpapers').addEventListener('click', () => {
+                dom.wallpapersPanel.classList.add('hidden');
+                dom.sidebarWallpaperBtn.classList.remove('active');
+            });
+
+            dom.fontSelect.addEventListener('change', updateTypographyLayout);
+            dom.alignSelect.addEventListener('change', () => dom.content.style.textAlign = dom.alignSelect.value);
+            dom.sizeSelect.addEventListener('change', () => document.documentElement.style.setProperty('--workspace-size', dom.sizeSelect.value));
+            
+            dom.fgSelect.addEventListener('change', () => { dom.schemeSelect.value = 'custom'; commitColorShift(dom.fgSelect.value, dom.bgSelect.value); });
+            dom.bgSelect.addEventListener('change', () => { dom.schemeSelect.value = 'custom'; commitColorShift(dom.fgSelect.value, dom.bgSelect.value); });
+            dom.schemeSelect.addEventListener('change', evaluateSchemePreset);
+
+            window.addEventListener('online', runTelemetryPipe);
+            window.addEventListener('offline', runTelemetryPipe);
+
+            // Spellcheck Toggle
+            dom.sidebarSpellBtn.addEventListener('click', () => {
+                const isActive = dom.content.getAttribute('spellcheck') === 'true';
+                dom.content.setAttribute('spellcheck', !isActive);
+                dom.sidebarSpellBtn.classList.toggle('active', !isActive);
+            });
+
+            // Autocomplete Toggle
+            dom.sidebarAutoBtn.addEventListener('click', () => {
+                autocompleteActive = !autocompleteActive;
+                dom.sidebarAutoBtn.classList.toggle('active', autocompleteActive);
+            });
+
+            // Menu Viewport Toggle Buttons
+            dom.sidebarConfigBtn.addEventListener('click', () => {
+                const hidden = dom.toolsPanel.classList.toggle('hidden');
+                dom.sidebarConfigBtn.classList.toggle('active', !hidden);
+            });
+
+            dom.sidebarWallpaperBtn.addEventListener('click', () => {
+                const hidden = dom.wallpapersPanel.classList.toggle('hidden');
+                dom.sidebarWallpaperBtn.classList.toggle('active', !hidden);
+            });
+
+            // Clarity Shield Cycle Loop
+            document.getElementById('btnClarity').addEventListener('click', () => {
+                clarityState = (clarityState + 1) % 3;
+                switch(clarityState) {
+                    case 0:
+                        dom.clarityShield.style.background = "transparent";
+                        dom.clarityShield.style.backdropFilter = "none";
+                        break;
+                    case 1:
+                        dom.clarityShield.style.background = "rgba(50, 50, 50, 0.4)";
+                        dom.clarityShield.style.backdropFilter = "blur(4px)";
+                        break;
+                    case 2:
+                        dom.clarityShield.style.background = "rgba(255, 255, 255, 0.4)";
+                        dom.clarityShield.style.backdropFilter = "blur(4px)";
+                        break;
+                }
+            });
+
+
+
+
+            // 5-Step Opacity Cycle Engine
+            document.getElementById('btnOpacity').addEventListener('click', () => {
+                opacityStep = (opacityStep + 1) % 5;
+                const rootStyle = document.documentElement.style;
+                
+                switch(opacityStep) {
+                    case 0: rootStyle.setProperty('--active-opacity', '0.85'); rootStyle.setProperty('--blur-amount', '12px'); break;
+                    case 1: rootStyle.setProperty('--active-opacity', '0.90'); rootStyle.setProperty('--blur-amount', '12px'); break;
+                    case 2: rootStyle.setProperty('--active-opacity', '0.50'); rootStyle.setProperty('--blur-amount', '8px');  break;
+                    case 3: rootStyle.setProperty('--active-opacity', '0.00'); rootStyle.setProperty('--blur-amount', '4px');  break;
+                    case 4: rootStyle.setProperty('--active-opacity', '0.00'); rootStyle.setProperty('--blur-amount', '0px');  break;
+                }
+                updateCaretPosition();
+            });
+
+            // WALLPAPER HUB PIPELINE INTERFACES
+            document.getElementById('btnCycleWallpaper').addEventListener('click', () => {
+                wallpaperIndex = (wallpaperIndex + 1) % wallpaperViews.length;
+                localStorage.setItem('protext_active_wallpaper_idx', wallpaperIndex);
+    
+                renderWallpaperManagerDOM(); // 👈 Re-draws the list to visually shift the highlight state!
+                applyActiveWallpaperView();
+});
+
+            document.getElementById('btnAddWallpaper').addEventListener('click', () => {
+                const inputField = document.getElementById('inputWallpaperUrl');
+                const rawUrl = inputField.value.trim();
+                
+                if (!rawUrl) return;
+                if (!rawUrl.startsWith('http://') && !rawUrl.startsWith('https://')) {
+                    alert("Asset path syntax error: Missing http/https protocol header.");
+                    return;
+                }
+
+                wallpaperViews.push(rawUrl);
+                wallpaperIndex = wallpaperViews.length - 1;
+                
+                localStorage.setItem('protext_permanent_wallpapers', JSON.stringify(wallpaperViews));
+                localStorage.setItem('protext_active_wallpaper_idx', wallpaperIndex);
+                
+                inputField.value = "";
+                renderWallpaperManagerDOM();
+                applyActiveWallpaperView();
+            });
+            
+       // --- WALLPAPER LIST MANIFEST EXPORT FUNCTIONS ---
+     // --- MANIFEST EXPORT PIPELINE (SAVE FUNCTION) ---
+    
+            document.getElementById('btnExportWallpapers').addEventListener('click', () => {
+                if (wallpaperViews.length === 0) {
+                    alert("Data error: There are no wallpaper assets available to export.");
+                    return;
+                }
+
+                const operatorName = document.getElementById('exportUserName').value.trim() || "ANONYMOUS NODE USER";
+                const manifestLabel = document.getElementById('exportListName').value.trim() || "DEFAULT WORKSPACE LIST";
+
+                const userAgentString = navigator.userAgent;
+                const clientScreenResolution = `${window.screen.width}x${window.screen.height}`;
+                const clientPlatformHardware = navigator.platform || "Unknown Architecture";
+                const windowHardwareConcurrency = navigator.hardwareConcurrency ? `${navigator.hardwareConcurrency} Logical Threads` : "N/A";
+                
+                let currentModeName = "Standard Workspace Layout";
+                if (opacityStep === 1) currentModeName = "Solid Glass Mode";
+                if (opacityStep === 2) currentModeName = "Frosted Veil HUD";
+                if (opacityStep === 3) currentModeName = "Pure Translucent HUD";
+                if (opacityStep === 4) currentModeName = "Minimalist Raw Frame";
+
+                let manifestContent =  "========================================================================\n";
+                manifestContent +=     "                 PROTEXT ENVIRONMENT WALLPAPER MANIFEST                  \n";
+                manifestContent +=     "========================================================================\n\n";
+                
+                manifestContent +=     "[IDENTITY & DATA LABELS]\n";
+                manifestContent +=     `Manifest Title  : ${manifestLabel.toUpperCase()}\n`;
+                manifestContent +=     `Operator ID     : ${operatorName}\n`;
+                manifestContent +=     `Generation Time : ${new Date().toLocaleString()}\n\n`;
+
+                manifestContent +=     "[HARDWARE & RUNTIME TELEMETRY]\n";
+                manifestContent +=     `Display Resolution : ${clientScreenResolution}\n`;
+                manifestContent +=     `Reported Platform  : ${clientPlatformHardware}\n`;
+                manifestContent +=     `CPU Core Allocation: ${windowHardwareConcurrency}\n`;
+                manifestContent +=     `Workspace Mode     : ${currentModeName}\n`;
+                manifestContent +=     `System UserAgent   : ${userAgentString}\n\n`;
+
+                manifestContent +=     "[CONFIGURED WALLPAPER ASSET DATA MATRIX]\n";
+                manifestContent +=     "------------------------------------------------------------------------\n";
+
+                wallpaperViews.forEach((url, index) => {
+                    const isCurrentActive = index === wallpaperIndex ? " [ACTIVE BACKGROUND]" : "";
+                    manifestContent += `Slot [${String(index + 1).padStart(2, '0')}]: ${url}${isCurrentActive}\n`;
+                });
+                
+                manifestContent +=     "------------------------------------------------------------------------\n";
+                manifestContent +=     `\n[EOF] End of Manifest. Total Registered Assets: ${wallpaperViews.length}\n`;
+
+                const blob = new Blob([manifestContent], { type: 'text/plain;charset=utf-8' });
+                const fileAnchor = document.createElement('a');
+                const filenameSanitized = manifestLabel.toLowerCase().replace(/[^a-z0-9]/gi, '_');
+                
+                fileAnchor.download = `ProText_WP-List_${filenameSanitized || 'workspace_backup'}.txt`;
+                fileAnchor.href = URL.createObjectURL(blob);
+                fileAnchor.click();
+                URL.revokeObjectURL(fileAnchor.href);
+
+                dom.rightTel.innerHTML = `System manifest saved cleanly to disk.`;
+            });
+
+ // --- UPDATED MANIFEST PARSE AND INGESTION PIPELINE (LOAD WITH APPEND OPTION) ---
+            const wallpaperFileInput = document.getElementById('wallpaperFileLoaderInput');
+            
+            document.getElementById('btnTriggerWallpaperLoad').addEventListener('click', () => {
+                wallpaperFileInput.click();
+            });
+
+            wallpaperFileInput.addEventListener('change', (e) => {
+                const uploadedFile = e.target.files[0];
+                if (!uploadedFile) return;
+
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const fileTextLines = event.target.result.split('\n');
+                    const freshlyParsedUrls = [];
+                    let extractedTitle = "";
+                    let extractedOperator = "";
+                    let targetActiveIndex = -1;
+
+                    // Parse the file structure line by line
+                    fileTextLines.forEach(line => {
+                        const cleanLine = line.trim();
+                        
+                        if (cleanLine.startsWith("Manifest Title  :")) {
+                            extractedTitle = cleanLine.split(":")[1].trim();
+                        }
+                        if (cleanLine.startsWith("Operator ID     :")) {
+                            extractedOperator = cleanLine.split(":")[1].trim();
+                        }
+
+                        if (cleanLine.startsWith("Slot [") && cleanLine.includes("]:")) {
+                            let rawUrlPart = cleanLine.substring(cleanLine.indexOf("]:") + 2).trim();
+                            
+                            if (rawUrlPart.includes("[ACTIVE BACKGROUND]")) {
+                                targetActiveIndex = freshlyParsedUrls.length;
+                                rawUrlPart = rawUrlPart.replace("[ACTIVE BACKGROUND]", "").trim();
+                            }
+                            
+                            if (rawUrlPart) {
+                                freshlyParsedUrls.push(rawUrlPart);
+                            }
+                        }
+                    });
+
+                    // Structural validation checkpoint
+                    if (freshlyParsedUrls.length === 0) {
+                        alert("Parsing Fault: Target text file does not contain a valid ProText wallpaper asset matrix configuration.");
+                        return;
+                    }
+
+                    // --- NEW INTERACTIVE MODE SELECTION ENGINE ---
+                    // Ask the user if they want to append or overwrite
+                    const shouldAppend = confirm(
+                        `ProText Wallpaper List Found!\n\n` +
+                        `List Label: ${extractedTitle || 'Unlabelled'}\n` +
+                        `User: ${extractedOperator || 'Unknown'}\n` +
+                        `Incoming Wallpapers: ${freshlyParsedUrls.length}\n\n` +
+                        `Would you like to APPEND these wallpapers to your current list?\n` +
+                        `[Click OK to Append | Click CANCEL to Replace Entirely]`
+                    );
+
+                    if (shouldAppend) {
+                        // --- MODE A: APPEND ENGINE ---
+                        // Filter out exact duplicate URLs so you don't clutter up memory tables
+                        const uniqueIncomingUrls = freshlyParsedUrls.filter(url => !wallpaperViews.includes(url));
+                        
+                        if (uniqueIncomingUrls.length === 0) {
+                            alert("Ecosystem Guard: All wallpapers inside this file are already present in your active workspace list.");
+                            wallpaperFileInput.value = "";
+                            return;
+                        }
+
+                        // Combine lists cleanly
+                        wallpaperViews = wallpaperViews.concat(uniqueIncomingUrls);
+                        
+                        // If the incoming file had a specific active background, point to its new index at the end of the array
+                        if (targetActiveIndex !== -1) {
+                            // Find where that specific URL now lives inside our merged list
+                            const originalActiveUrl = freshlyParsedUrls[targetActiveIndex];
+                            wallpaperIndex = wallpaperViews.indexOf(originalActiveUrl);
+                        } else {
+                            // Default fallback: keep looking at whatever wallpaper the user currently has open
+                            // No change to wallpaperIndex needed
+                        }
+                        
+                        dom.rightTel.innerHTML = `Appended ${uniqueIncomingUrls.length} Assets from ${extractedTitle || 'Manifest'}`;
+
+                    } else {
+                        // --- MODE B: REPLACE ENGINE ---
+                        wallpaperViews = freshlyParsedUrls;
+                        wallpaperIndex = targetActiveIndex !== -1 ? targetActiveIndex : 0;
+                        
+                        // Update metadata fields to match the file's header definitions since we did a clean swap
+                        document.getElementById('exportUserName').value = extractedOperator;
+                        document.getElementById('exportListName').value = extractedTitle;
+                        
+                        dom.rightTel.innerHTML = `Loaded Manifest: ${extractedTitle || 'EXTERNAL CONFIG'}`;
+                    }
+
+                    // Commit changes instantly to browser local memory tables
+                    localStorage.setItem('protext_permanent_wallpapers', JSON.stringify(wallpaperViews));
+                    localStorage.setItem('protext_active_wallpaper_idx', wallpaperIndex);
+
+                    // Synchronize the interface panels in lockstep
+                    renderWallpaperManagerDOM();
+                    applyActiveWallpaperView();
+
+                    alert(shouldAppend ? `Successfully appended ${freshlyParsedUrls.length} entries!` : "Workspace entirely replaced with new manifest data configuration.");
+                    
+                    // Flush out the file selector input value
+                    wallpaperFileInput.value = "";
+                };
+                
+                reader.readAsText(uploadedFile);
+            });
+
+            document.getElementById('btnReset').addEventListener('click', () => {
+                if(confirm("Hard reset full ProText workspace cache parameters?")) {
+                    localStorage.clear();
+                    location.reload();
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', bootstrapApp);
+        
+    // Bind real-time telemetry pipelines to cursor selections and text modifications
+            document.addEventListener('selectionchange', () => {
+                // Only run calculations if the text area currently holds focus bounds
+                if (document.activeElement === dom.content) {
+                    runTelemetryPipe();
+                }
+            });
+
+            // Fallback: Clear selection stats back to standard document totals when text area loses focus
+            dom.content.addEventListener('blur', () => {
+                setTimeout(runTelemetryPipe, 100); // Small timeout allows mouse actions to process first
+            });    
+        
+// --- LINE NUMBERS & MINIMALIST SIDEBAR BUTTON INTEGRATION ---
+document.addEventListener('DOMContentLoaded', () => {
+    const mainTextarea = document.getElementById('content');
+    const editorWrapper = document.querySelector('.editor-wrapper');
+    const sidebarAside = document.querySelector('aside');
+
+    if (!mainTextarea || !editorWrapper) return;
+
+    // 1. FORCE FLEX LAYOUT ON WRAPPER FOR VERTICAL TRACKING ALIGNMENT
+    editorWrapper.style.display = 'flex';
+    editorWrapper.style.alignItems = 'stretch';
+
+    // 2. CREATE THE STANDALONE TEXTAREA BUFFER CO-COLUMN
+    const numGutter = document.createElement('textarea');
+    numGutter.id = 'staticLineGutter';
+    numGutter.readOnly = true;
+    numGutter.tabIndex = -1; // Stops tab focus targeting
+    
+    // Fill 1 to 99999 strings sequentially
+    let numbersPayload = '';
+    for (let i = 1; i <= 99999; i++) {
+        numbersPayload += i + '\n';
+    }
+    numGutter.value = numbersPayload;
+
+    // 3. STYLE CO-COLUMN WITH INVERTED SCHEME ACCORDING TO USER MATRIX
+  // Define the custom inverted styling parameters
+    function syncGutterColors() {
+        const mainStyles = window.getComputedStyle(mainTextarea);
+        
+        // Apply the inverted color profile instantly
+        numGutter.style.color = mainStyles.backgroundColor; // Main BG color becomes Text
+        numGutter.style.background = mainStyles.color;      // Main Text color becomes BG
+        numGutter.style.borderRight = '1px solid rgba(0, 0, 0, 0.15)';
+    }
+
+    // Apply basic structural layout rules (these don't change during theme swaps)
+    const mainStyles = window.getComputedStyle(mainTextarea);
+    Object.assign(numGutter.style, {
+        width: 'calc(5ch + 15px)',
+        minWidth: 'calc(5ch + 15px)',
+        height: '100%',
+        padding: `calc(${mainStyles.paddingTop} + 3px) 6px ${mainStyles.paddingBottom} 4px`,
+      
+        fontSize: mainStyles.fontSize,
+        fontFamily: mainStyles.fontFamily,
+        lineHeight: mainStyles.lineHeight,
+        textAlign: 'right',
+        border: 'none',
+        resize: 'none',
+        overflow: 'hidden', 
+        userSelect: 'none',
+        pointerEvents: 'none',
+        boxSizing: 'border-box',
+        whiteSpace: 'pre',
+        opacity: '1'
+        
+    });
+
+    // Run the color synchronization immediately on initialization
+    syncGutterColors();
+    
+    // Expose it globally so your theme switches can call it
+    window.syncGutterColors = syncGutterColors;
+
+    // Ingest the gutter column directly inside your editor wrapper block
+    editorWrapper.insertBefore(numGutter, mainTextarea);
+
+    // 4. VERTICAL SCROLL ALIGNER LOCK
+    mainTextarea.addEventListener('scroll', () => {
+        numGutter.scrollTop = mainTextarea.scrollTop;
+    });
+
+// 5. INJECT NEW SECTION AND MINIMALIST SIDE-ICON-BTNS INTO THE ASIDE ELEMENT
+    if (sidebarAside) {
+
+        // Create the top divider line
+        const topDivider = document.createElement('hr');
+        topDivider.style.cssText = 'width: 60%; border: 1px solid black; margin: 0.25rem 0;';
+
+        // Create the bottom divider line
+        const bottomDivider = document.createElement('hr');
+        bottomDivider.style.cssText = 'width: 60%; border: 1px solid black; margin: 0.25rem 0;';
+
+        // Create the line numbers toggle button
+        const toggleBtn = document.createElement('button');
+        toggleBtn.className = 'side-icon-btn';
+        toggleBtn.id = 'btnToggleLineNumbers';
+        toggleBtn.setAttribute('data-tooltip', 'Toggle Line Numbers');
+        toggleBtn.innerText = '🔢';
+
+        // --- NEW: FIND & HIGHLIGHT BUTTON ---
+        const findBtn = document.createElement('button');
+        findBtn.className = 'side-icon-btn';
+        findBtn.id = 'btnFindText';
+        findBtn.setAttribute('data-tooltip', 'Find & Highlight');
+        findBtn.innerText = '🔎'; // Minimalist target tracking icon
+
+        // --- SEARCH & REPLACE UTILITY BUTTON ---
+        const searchBtn = document.createElement('button');
+        searchBtn.className = 'side-icon-btn';
+        searchBtn.id = 'btnSearchReplace';
+        searchBtn.setAttribute('data-tooltip', 'Search ');
+        searchBtn.innerText = '🔄'; // Minimalist loop tool look
+
+        // --- JUMP TO LINE NAVIGATION BUTTON ---
+        const jumpLineBtn = document.createElement('button');
+        jumpLineBtn.className = 'side-icon-btn';
+        jumpLineBtn.id = 'btnJumpToLine';
+        jumpLineBtn.setAttribute('data-tooltip', 'Jump to Line Address');
+        jumpLineBtn.innerText = '↷'; // Minimalist locator terminal look
+
+        // --- NEW: SYSTEM ENVIRONMENT METADATA STAMP BUTTON ---
+        const stampBtn = document.createElement('button');
+        stampBtn.className = 'side-icon-btn';
+        stampBtn.id = 'btnEnvironmentStamp';
+        stampBtn.setAttribute('data-tooltip', 'Insert System Environment Stamp');
+        stampBtn.innerText = '📋'; // Minimalist clipboard/logger console icon
+
+        // Find the Wallpaper Hub button to use as our anchor point
+        const wallpaperBtnRef = document.getElementById('btnWallpaperMenu');
+        
+        if (wallpaperBtnRef) {
+            // Stack the entire segment precisely right before the wallpaper menu button
+            sidebarAside.insertBefore(topDivider, wallpaperBtnRef);
+            sidebarAside.insertBefore(toggleBtn, wallpaperBtnRef);
+            sidebarAside.insertBefore(findBtn, wallpaperBtnRef);        // Sits neatly under line numbers
+            sidebarAside.insertBefore(searchBtn, wallpaperBtnRef);      // Sits cleanly under find tool
+            sidebarAside.insertBefore(jumpLineBtn, wallpaperBtnRef);    // Sits cleanly under search/replace
+            sidebarAside.insertBefore(stampBtn, wallpaperBtnRef);       // Sits cleanly under jump button
+            sidebarAside.insertBefore(bottomDivider, wallpaperBtnRef);
+        } else {
+            // Fallback stack if anchor point fails
+            sidebarAside.appendChild(topDivider);
+            sidebarAside.appendChild(toggleBtn);
+            sidebarAside.appendChild(findBtn);
+            sidebarAside.appendChild(searchBtn);
+            sidebarAside.appendChild(jumpLineBtn);
+            sidebarAside.appendChild(stampBtn);
+            sidebarAside.appendChild(bottomDivider);
+        } 
+
+        // --- WIRE UP THE CLICK LISTENER FOR THE NEW FIND BUTTON ---
+        findBtn.addEventListener('click', () => {
+            if (typeof triggerFindEngine === 'function') {
+                triggerFindEngine();
+            }
         });
 
-        downloadBtn.addEventListener('click', executeDownload);
-        clearBtn.addEventListener('click', clearWorkspace);
+        // --- WIRE UP THE CLICK LISTENER FOR THE NEW SEARCH/REPLACE BUTTON ---
+        searchBtn.addEventListener('click', () => {
+            if (typeof triggerSearchReplaceEngine === 'function') {
+                triggerSearchReplaceEngine();
+            }
+        });
 
-        // Execute Bootstrap
-        document.addEventListener('DOMContentLoaded', bootstrapApplication);
-    </script>
+        // --- WIRE UP THE CLICK LISTENER FOR THE NEW JUMP BUTTON ---
+        jumpLineBtn.addEventListener('click', () => {
+            triggerJumpToLineEngine();
+        });
+
+        // --- WIRE UP THE CLICK LISTENER FOR THE ENVIRONMENT STAMP ---
+        stampBtn.addEventListener('click', () => {
+            if (typeof triggerEnvironmentStampEngine === 'function') {
+                triggerEnvironmentStampEngine();
+            }
+        });
+
+        // 6. TOGGLE VISIBILITY MATRIX CAPABLE OF LOCAL STORAGE RECALLS
+        const isVisiblePref = localStorage.getItem('protext_gutter_visible') !== 'false';
+        
+        if (isVisiblePref) {
+            toggleBtn.classList.add('active');
+            numGutter.style.display = 'block';
+        } else {
+            toggleBtn.classList.remove('active');
+            numGutter.style.display = 'none';
+        }
+
+        toggleBtn.addEventListener('click', () => {
+            const isCurrentlyActive = toggleBtn.classList.contains('active');
+            
+            if (isCurrentlyActive) {
+                toggleBtn.classList.remove('active');
+                numGutter.style.display = 'none';
+                localStorage.setItem('protext_gutter_visible', 'false');
+            } else {
+                toggleBtn.classList.add('active');
+                numGutter.style.display = 'block';
+                localStorage.setItem('protext_gutter_visible', 'true');
+                numGutter.scrollTop = mainTextarea.scrollTop;
+            }
+        });
+    } else {
+        numGutter.style.display = 'block';
+    }
+});
+
+
+
+        
+        // --- COHESIVE JUMP TO LINE NAVIGATION CORE ENGINE ---
+function triggerJumpToLineEngine() {
+    const mainTextarea = document.getElementById('content');
+    if (!mainTextarea) return;
+
+    // 1. Prompt operator for target coordinate
+    const targetInput = prompt("Jump to Line Number (1 - 99999):");
+    if (!targetInput) return;
+
+    const lineNum = parseInt(targetInput, 10);
+    
+    // Validation Gate
+    if (isNaN(lineNum) || lineNum < 1) {
+        alert("Navigation Error: Invalid line layout address.");
+        return;
+    }
+
+    // 2. Count lines and constrain boundaries
+    const linesArray = mainTextarea.value.split('\n');
+    const totalLines = linesArray.length;
+    const sanitizedLine = Math.min(lineNum, totalLines);
+
+    // 3. Compute active typography spacing properties
+    const computedStyle = window.getComputedStyle(mainTextarea);
+    const lineHeightPx = parseFloat(computedStyle.lineHeight);
+    const lineSpacing = !isNaN(lineHeightPx) ? lineHeightPx : parseFloat(computedStyle.fontSize) * 1.5;
+
+    // 4. Update window positioning metrics
+    const targetScrollTop = (sanitizedLine - 1) * lineSpacing;
+    mainTextarea.scrollTop = targetScrollTop;
+    
+    const numGutter = document.getElementById('staticLineGutter');
+    if (numGutter) {
+        numGutter.scrollTop = targetScrollTop;
+    }
+
+    // 5. Track characters to instantly drop blinking text cursor on target
+    let characterOffset = 0;
+    for (let i = 0; i < sanitizedLine - 1; i++) {
+        characterOffset += linesArray[i].length + 1; // Includes line break characters
+    }
+    mainTextarea.setSelectionRange(characterOffset, characterOffset);
+    mainTextarea.focus();
+}
+
+// Keep keyboard listeners active as an alternative acceleration pipeline
+document.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.altKey) && e.key.toLowerCase() === 'g') {
+        e.preventDefault();
+        triggerJumpToLineEngine();
+    }
+});
+        
+// --- COHESIVE SEARCH & REPLACE CORE ENGINE ---
+function triggerSearchReplaceEngine() {
+    const mainTextarea = document.getElementById('content');
+    if (!mainTextarea) return;
+
+    // 1. Prompt for target query string
+    const searchTarget = prompt("Search for text target:");
+    if (searchTarget === null || searchTarget === "") return; // Cancel or empty string guard
+
+    // 2. Prompt for replacing string
+    const replacementText = prompt(`Replace "${searchTarget}" with:`);
+    if (replacementText === null) return; // Allow empty string as valid replacement (deletion)
+
+    const textBuffer = mainTextarea.value;
+
+    // 3. Check if target actually exists in the file matrix
+    if (!textBuffer.includes(searchTarget)) {
+        alert(`Search Notice: Target term "${searchTarget}" not found in current environment.`);
+        return;
+    }
+
+    // 4. Prompt choice for single replacement vs global replacement execution
+    const executionChoice = prompt("Type 'ALL' to replace all occurrences, or press Enter/OK to replace only the first one:");
+    
+    let updatedBuffer = "";
+    let occurrenceCount = 0;
+
+    if (executionChoice && executionChoice.toUpperCase() === 'ALL') {
+        // Use a safe regex-free loop or split/join configuration to avoid escaping special regex syntax
+        occurrenceCount = textBuffer.split(searchTarget).length - 1;
+        updatedBuffer = textBuffer.split(searchTarget).join(replacementText);
+    } else {
+        // Replace single target
+        occurrenceCount = 1;
+        updatedBuffer = textBuffer.replace(searchTarget, replacementText);
+    }
+
+    // 5. Commit mutations to the main DOM workspace view
+    mainTextarea.value = updatedBuffer;
+
+    // 6. Mandatory updates to trigger your line number rendering loops
+    mainTextarea.dispatchEvent(new Event('input'));
+
+    // Success Status report to operator console
+    alert(`Success: Replaced ${occurrenceCount} instance(s) of "${searchTarget}".`);
+    
+    // Return typing focus directly back to text workspace
+    mainTextarea.focus();
+}
+
+// Keep a keyboard listener active as an alternative acceleration pipeline (Ctrl + H)
+document.addEventListener('keydown', (e) => {
+    if (e.ctrlKey && e.key.toLowerCase() === 'h') {
+        e.preventDefault();
+        triggerSearchReplaceEngine();
+    }
+});        
+        
+// Global state variables to keep track of rolling search context
+let lastSearchQuery = "";
+let currentSearchIndex = 0;
+
+function triggerFindEngine() {
+    const mainTextarea = document.getElementById('content');
+    if (!mainTextarea) return;
+
+    // 1. Prompt operator for target search term
+    const searchQuery = prompt("Search text to highlight:", lastSearchQuery);
+    if (!searchQuery) return; // Guard against cancel or empty strings
+
+    const textContent = mainTextarea.value;
+    const lowerContent = textContent.toLowerCase();
+    const lowerQuery = searchQuery.toLowerCase();
+
+    // Reset loop tracking if the operator searches for a brand new term
+    if (searchQuery !== lastSearchQuery) {
+        lastSearchQuery = searchQuery;
+        currentSearchIndex = 0;
+    }
+
+    // 2. Locate the match position using a rolling index finder
+    let targetMatchIndex = lowerContent.indexOf(lowerQuery, currentSearchIndex);
+
+    // If we hit the end of the document or found nothing, wrap back around to the top
+    if (targetMatchIndex === -1) {
+        targetMatchIndex = lowerContent.indexOf(lowerQuery, 0);
+        if (targetMatchIndex === -1) {
+            alert(`Search Matrix: Term "${searchQuery}" not found.`);
+            return;
+        }
+    }
+
+    // 3. Highlight the text using programmatic text selection range
+    mainTextarea.focus();
+    mainTextarea.setSelectionRange(targetMatchIndex, targetMatchIndex + searchQuery.length);
+
+    // 4. Smoothly scroll the textarea viewport to bring the highlighted text into view
+    // We calculate line positioning using standard character index splits
+    const linesBeforeMatch = textContent.substring(0, targetMatchIndex).split('\n').length;
+    
+    const computedStyle = window.getComputedStyle(mainTextarea);
+    const lineHeightPx = parseFloat(computedStyle.lineHeight);
+    const lineSpacing = !isNaN(lineHeightPx) ? lineHeightPx : parseFloat(computedStyle.fontSize) * 1.5;
+
+    // Center the found text vertically in the textarea box
+    const targetScrollTop = (linesBeforeMatch - 1) * lineSpacing - (mainTextarea.clientHeight / 2);
+    mainTextarea.scrollTop = Math.max(0, targetScrollTop);
+
+    // Keep your inverted line-number gutter perfectly locked in place with the scroll
+    const numGutter = document.getElementById('staticLineGutter');
+    if (numGutter) {
+        numGutter.scrollTop = mainTextarea.scrollTop;
+    }
+
+    // Advance the rolling cursor pointer for the next 'Find Next' execution sequence
+    currentSearchIndex = targetMatchIndex + searchQuery.length;
+}
+
+// Map the keyboard execution line to standard terminal shortcut Ctrl + F
+document.addEventListener('keydown', (e) => {
+    if (e.ctrlKey && e.key.toLowerCase() === 'f') {
+        e.preventDefault();
+        triggerFindEngine();
+    }
+});        
+        
+// --- COHESIVE SYSTEM METADATA STAMP ENGINE (RAW GMT & FRACTIONAL MATRIX) ---
+function triggerEnvironmentStampEngine() {
+    const mainTextarea = document.getElementById('content');
+    if (!mainTextarea) return;
+
+    // 1. Core Selection Menu
+    const optionsMenu = "Choose stamp target:\n\n" +
+                        "1: DATE (YYYY-MM-DD)\n" +
+                        "2: TIME (HH:MM:SS)\n" +
+                        "3: TZ   (Select Global GMT / Fractional Offset Baseline)\n" +
+                        "4: SYS  (Platform, Browser, Resolution)\n" +
+                        "5: ALL  (Full Diagnostic Header with GMT/Fractional Select)";
+                        
+    const userChoice = prompt(optionsMenu, "1");
+    if (!userChoice) return;
+
+    let textToInsert = "";
+    let targetZone = "UTC"; // Default baseline
+    const normalizedChoice = userChoice.trim().toUpperCase();
+
+    // 2. ABSOLUTE OFFSET & ANOMALY MATRIX
+    if (normalizedChoice === '3' || normalizedChoice === 'TZ' || normalizedChoice === '5' || normalizedChoice === 'ALL') {
+        
+        const gmtGroupMenu = "Select Offset Direction or Fractional Anomaly:\n\n" +
+                             "1: Negative Offsets (GMT-1 to GMT-12) [Americas/Pacific]\n" +
+                             "2: Absolute Zero Baseline (GMT / UTC)\n" +
+                             "3: Positive Offsets (GMT+1 to GMT+14) [Europe/Asia/Africa/Aus]\n" +
+                             "4: Fractional Offsets (:30 and :45 Minute Anomalies)";
+                             
+        const groupChoice = prompt(gmtGroupMenu, "2");
+        if (!groupChoice) return;
+
+        if (groupChoice.trim() === '1') {
+            // WESTERN HEMISPHERE (WHOLE HOURS)
+            const westMenu = "Select Western Offset:\n\n" +
+                             "1:  GMT-1  (Azores)\n" +
+                             "2:  GMT-2\n" +
+                             "3:  GMT-3  (Brazil / Argentina)\n" +
+                             "4:  GMT-4  (Atlantic Standard)\n" +
+                             "5:  GMT-5  (US Eastern Standard)\n" +
+                             "6:  GMT-6  (US Central Standard)\n" +
+                             "7:  GMT-7  (US Mountain Standard)\n" +
+                             "8:  GMT-8  (US Pacific Standard)\n" +
+                             "9:  GMT-9  (Alaska)\n" +
+                             "10: GMT-10 (Hawaii)\n" +
+                             "11: GMT-11 (Midway)\n" +
+                             "12: GMT-12 (IDLW)";
+            const westChoice = prompt(westMenu, "5");
+            if (westChoice && !isNaN(westChoice)) {
+                const val = Math.floor(Number(westChoice));
+                if (val >= 1 && val <= 12) targetZone = `Etc/GMT+${val}`; 
+            }
+        } else if (groupChoice.trim() === '3') {
+            // EASTERN HEMISPHERE (WHOLE HOURS)
+            const eastMenu = "Select Eastern Offset:\n\n" +
+                             "1:  GMT+1  (Central Europe)\n" +
+                             "2:  GMT+2  (Eastern Europe / Egypt)\n" +
+                             "3:  GMT+3  (Moscow / East Africa)\n" +
+                             "4:  GMT+4  (Gulf / Dubai)\n" +
+                             "5:  GMT+5  (Pakistan / Maldives)\n" +
+                             "6:  GMT+6  (Bangladesh)\n" +
+                             "7:  GMT+7  (Thailand / Vietnam)\n" +
+                             "8:  GMT+8  (China / Singapore / HK)\n" +
+                             "9:  GMT+9  (Japan / Korea)\n" +
+                             "10: GMT+10 (Eastern Australia)\n" +
+                             "11: GMT+11 (Solomon Islands)\n" +
+                             "12: GMT+12 (New Zealand)\n" +
+                             "13: GMT+13 (Tonga)\n" +
+                             "14: GMT+14 (Line Islands)";
+            const eastChoice = prompt(eastMenu, "8");
+            if (eastChoice && !isNaN(eastChoice)) {
+                const val = Math.floor(Number(eastChoice));
+                if (val >= 1 && val <= 14) targetZone = `Etc/GMT-${val}`; 
+            }
+        } else if (groupChoice.trim() === '4') {
+            // FRACTIONAL TIMEZONE DENOMINATIONS
+            const fracMenu = "Select Fractional Target Zone:\n\n" +
+                             "1: GMT -3:30 (Newfoundland, Canada)\n" +
+                             "2: GMT +3:30 (Iran)\n" +
+                             "3: GMT +4:30 (Afghanistan)\n" +
+                             "4: GMT +5:30 (India & Sri Lanka)\n" +
+                             "5: GMT +5:45 (Nepal)\n" +
+                             "6: GMT +6:30 (Myanmar / Burma)\n" +
+                             "7: GMT +9:30 (Central Australia)\n" +
+                             "8: GMT +12:45 (Chatham Islands, NZ)";
+            const fracChoice = prompt(fracMenu, "4");
+            
+            // Map keys directly to strict, verified IANA Database Location keys
+            const fracMap = {
+                "1": "America/St_Johns",
+                "2": "Asia/Tehran",
+                "3": "Asia/Kabul",
+                "4": "Asia/Kolkata",
+                "5": "Asia/Kathmandu",
+                "6": "Asia/Yangon",
+                "7": "Australia/Darwin",
+                "8": "Pacific/Chatham"
+            };
+            
+            if (fracChoice && fracMap[fracChoice.trim()]) {
+                targetZone = fracMap[fracChoice.trim()];
+            } else if (fracChoice) {
+                alert("Invalid fractional selection. Defaulting to UTC baseline.");
+                targetZone = "UTC";
+            }
+        } else {
+            targetZone = "UTC";
+        }
+    }
+
+    // 3. GENERATE THE TIMING VALUES VIA THE INT-ENGINE
+    const now = new Date();
+    const formatterOptions = {
+        timeZone: targetZone,
+        year: 'numeric', month: '2-digit', day: '2-digit',
+        hour: '2-digit', minute: '2-digit', second: '2-digit',
+        hour12: false
+    };
+    
+    try {
+        const formatter = new Intl.DateTimeFormat('en-US', formatterOptions);
+        const parts = formatter.formatToParts(now);
+        const partMap = Object.fromEntries(parts.map(p => [p.type, p.value]));
+        
+        var dateStr = `${partMap.year}-${partMap.month}-${partMap.day}`;
+        var timeStr = `${partMap.hour}:${partMap.minute}:${partMap.second}`;
+    } catch (e) {
+        const pad = (num) => String(num).padStart(2, '0');
+        var dateStr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+        var timeStr = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+    }
+
+    // 4. CLEAN UP READABLE DISPLAY NAME FOR THE SNAPSHOT TEMPLATE
+    let displayZoneName = targetZone;
+    if (targetZone.startsWith("Etc/GMT")) {
+        displayZoneName = targetZone.includes("+") 
+            ? `GMT-${targetZone.split("+")[1]}` 
+            : `GMT+${targetZone.split("-")[1]}`;
+    } else if (targetZone === "UTC") {
+        displayZoneName = "GMT/UTC";
+    } else {
+        // For fractional zones, format the location path to look clean (e.g., "Asia/Kolkata" -> "Kolkata")
+        const locationSegments = targetZone.split('/');
+        displayZoneName = locationSegments[locationSegments.length - 1].replace('_', ' ');
+    }
+
+    // 5. PARSE HARDWARE & SCREEN METRICS
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    const screenWidth = screen.width;
+    const screenHeight = screen.height;
+    
+    let browserName = "Unknown Browser";
+    const ua = navigator.userAgent;
+    if (ua.includes("Firefox")) browserName = "Firefox";
+    else if (ua.includes("Chrome")) browserName = "Chrome";
+    else if (ua.includes("Safari")) browserName = "Safari";
+
+    const platformName = navigator.platform || "Unknown OS Platform";
+
+    // 6. PROCESSING TARGET OUTPUT ROUTER
+    if (normalizedChoice === '1' || normalizedChoice === 'DATE') {
+        textToInsert = dateStr;
+    } else if (normalizedChoice === '2' || normalizedChoice === 'TIME') {
+        textToInsert = timeStr;
+    } else if (normalizedChoice === '3' || normalizedChoice === 'TZ') {
+        textToInsert = `[Zone: ${displayZoneName} | ${dateStr} ${timeStr}]`;
+    } else if (normalizedChoice === '4' || normalizedChoice === 'SYS') {
+        textToInsert = `[OS: ${platformName} | Engine: ${browserName} | Viewport: ${viewportWidth}x${viewportHeight}]`;
+    } else if (normalizedChoice === '5' || normalizedChoice === 'ALL') {
+        textToInsert = `\n--- ENVIRONMENT DIAGNOSTIC STAMP ---\n` +
+                       `Timestamp: ${dateStr} @ ${timeStr} (${displayZoneName})\n` +
+                       `Host OS:   ${platformName}\n` +
+                       `Browser:  ${browserName}\n` +
+                       `Display:   Canvas: ${viewportWidth}x${viewportHeight} | Hardware: ${screenWidth}x${screenHeight}\n` +
+                       `────────────────────────────────────\n`;
+    } else {
+        alert("Selection Error: Unrecognized string macro command.");
+        return;
+    }
+
+    // 7. ARBITRARY STRING BUFFER PLACEMENT
+    const selectionStart = mainTextarea.selectionStart;
+    const selectionEnd = mainTextarea.selectionEnd;
+    const baseValue = mainTextarea.value;
+
+    mainTextarea.value = baseValue.substring(0, selectionStart) + textToInsert + baseValue.substring(selectionEnd);
+
+    const updatedCursorPos = selectionStart + textToInsert.length;
+    mainTextarea.setSelectionRange(updatedCursorPos, updatedCursorPos);
+
+    mainTextarea.dispatchEvent(new Event('input'));
+    mainTextarea.focus();
+}
+
+// --- PROTEXT COHESIVE HIGHLIGHT INVERSION ENGINE ---
+function updateActiveToolBackgroundMatrix() {
+    const mainTextarea = document.getElementById('content');
+    if (!mainTextarea) return;
+
+    // Safely verify if either reference carries the 'active' class matrix
+    const isDictActive = dom.sidebarDictBtn ? dom.sidebarDictBtn.classList.contains('active') : false;
+    const isThesActive = dom.sidebarThesBtn ? dom.sidebarThesBtn.classList.contains('active') : false;
+
+    // Execution Matrix: If EITHER is active, enforce the stark black layout override
+    if (isDictActive || isThesActive) {
+        Object.assign(mainTextarea.style, {
+            backgroundColor: '#000000',
+            color: '#ffffff',
+            textShadow: '0 0 1px rgba(255,255,255,0.2)', // Micro-crisp anti-aliasing boost
+            transition: 'background-color 0.25s ease, color 0.25s ease' // Smooth terminal transition
+        });
+    } else {
+        // Default Fallback Rollback: Clear inline overrides to restore your default theme settings
+        Object.assign(mainTextarea.style, {
+            backgroundColor: '',
+            color: '',
+            textShadow: '',
+            transition: 'background-color 0.25s ease, color 0.25s ease'
+        });
+    }
+}
+
+// Ensure elements exist in DOM before assigning event handles
+const contextMenu = document.getElementById('customContextMenu');
+const mainTextarea = document.getElementById('content');
+
+if (mainTextarea && contextMenu) {
+    
+// Cache variable to track the exact coordinates where the right-click occurred
+    let lastRightClickEvent = null;
+
+    // 1. Context Menu Interception Wrapper Function
+    function preventDefaultWrapper(e) {
+        // NEW BYPASS: If the user is holding down the Shift key, do nothing!
+        // This lets the browser's native right-click menu open normally.
+        if (e.shiftKey || e.ctrlKey) {
+            contextMenu.classList.add('hidden'); // Hide custom menu if it was open
+            return; 
+        }
+
+        e.preventDefault(); // Block standard browser pop-up dropdown for normal right-clicks
+        lastRightClickEvent = e; // Cache the event properties (coordinates)
+
+        // Set layout absolute coordinate points right under the mouse cursor
+        contextMenu.style.left = `${e.pageX}px`;
+        contextMenu.style.top = `${e.pageY}px`;
+
+        // Reveal the panel framework
+        contextMenu.classList.remove('hidden');
+    }
+
+    // Bind the interception wrapper to the main workspace textarea
+    mainTextarea.addEventListener('contextmenu', preventDefaultWrapper);
+    // 2. Hide Menu automatically if clicking outside bounds
+    document.addEventListener('click', function (e) {
+        if (!contextMenu.contains(e.target)) {
+            contextMenu.classList.add('hidden');
+        }
+    });
+
+    // --- HELPER FUNCTION: Modifies only selected text block smoothly ---
+    function modifySelectedText(transformationCallback) {
+        const start = mainTextarea.selectionStart;
+        const end = mainTextarea.selectionEnd;
+        const originalText = mainTextarea.value;
+        const selectedText = originalText.substring(start, end);
+
+        if (!selectedText.trim()) {
+            alert("Please highlight a block of text first!");
+            return;
+        }
+
+        // Apply string conversion adjustments
+        const modifiedText = transformationCallback(selectedText);
+
+        // Splice modified text block back into main content flow
+        mainTextarea.value = originalText.substring(0, start) + modifiedText + originalText.substring(end);
+
+        // Keep target block beautifully highlighted post-update
+        mainTextarea.setSelectionRange(start, start + modifiedText.length);
+        
+        // Push input update event to keep line numbers and layout engines accurate
+        mainTextarea.dispatchEvent(new Event('input'));
+        mainTextarea.focus();
+    }
+
+    // --- 3. ATTACH MENU ACTIONS ---
+
+    // Search Google Tool
+    document.getElementById('ctxSearchGoogle').addEventListener('click', () => {
+        contextMenu.classList.add('hidden');
+        const start = mainTextarea.selectionStart;
+        const end = mainTextarea.selectionEnd;
+        const selection = mainTextarea.value.substring(start, end).trim();
+        if (selection) {
+            window.open(`https://www.google.com/search?q=${encodeURIComponent(selection)}`, '_blank');
+        } else {
+            alert("Highlight some text to search!");
+        }
+    });
+
+    // Google Translate Tool
+    document.getElementById('ctxTranslate').addEventListener('click', () => {
+        contextMenu.classList.add('hidden');
+        const start = mainTextarea.selectionStart;
+        const end = mainTarea.selectionEnd;
+        const selection = mainTextarea.value.substring(start, end).trim();
+        if (selection) {
+            window.open(`https://translate.google.com/?sl=auto&tl=en&text=${encodeURIComponent(selection)}&op=translate`, '_blank');
+        } else {
+            alert("Highlight some text to translate!");
+        }
+    });
+
+    // Case Transformations
+    document.getElementById('ctxUpperCase').addEventListener('click', () => {
+        contextMenu.classList.add('hidden');
+        modifySelectedText(text => text.toUpperCase());
+    });
+
+    document.getElementById('ctxLowerCase').addEventListener('click', () => {
+        contextMenu.classList.add('hidden');
+        modifySelectedText(text => text.toLowerCase());
+    });
+
+    document.getElementById('ctxTitleCase').addEventListener('click', () => {
+        contextMenu.classList.add('hidden');
+        modifySelectedText(text => text.replace(/\b\w/g, char => char.toUpperCase()));
+    });
+
+   // --- UPGRADED BULLET LIST TOGGLE ENGINE ---
+    document.getElementById('ctxBulletList').addEventListener('click', () => {
+        contextMenu.classList.add('hidden');
+        modifySelectedText(text => {
+            const lines = text.split('\n');
+            
+            // Check if EVERY non-empty line in the selection already has a bullet
+            const isAlreadyBulleted = lines
+                .filter(line => line.trim().length > 0)
+                .every(line => line.trim().startsWith('•'));
+
+            if (isAlreadyBulleted) {
+                // TOGGLE OFF: Strip bullets and any trailing space after them
+                return lines.map(line => line.replace(/^\s*•\s*/, '')).join('\n');
+            } else {
+                // TOGGLE ON / SWAP: Strip off prior numbers first, then apply a clean bullet
+                return lines.map(line => {
+                    const cleanLine = line.replace(/^\s*\d+\.\s*/, ''); // Wipe out numbers if they exist
+                    return cleanLine.trim().startsWith('•') ? line : `• ${cleanLine}`;
+                }).join('\n');
+            }
+        });
+    });
+
+    // --- UPGRADED NUMBERED LIST TOGGLE ENGINE ---
+    document.getElementById('ctxNumberedList').addEventListener('click', () => {
+        contextMenu.classList.add('hidden');
+        modifySelectedText(text => {
+            const lines = text.split('\n');
+            
+            // Check if EVERY non-empty line in the selection already starts with a list number digits pattern
+            const isAlreadyNumbered = lines
+                .filter(line => line.trim().length > 0)
+                .every(line => /^\s*\d+\.\s*/.test(line));
+
+            if (isAlreadyNumbered) {
+                // TOGGLE OFF: Strip numbering digits pattern completely
+                return lines.map(line => line.replace(/^\s*\d+\.\s*/, '')).join('\n');
+            } else {
+                // TOGGLE ON / SWAP: Strip off any prior bullets, then build an incrementing numbered list
+                let count = 1;
+                return lines.map(line => {
+                    const cleanLine = line.replace(/^\s*•\s*/, '').replace(/^\s*\d+\.\s*/, ''); // Wipe bullets or old order positions
+                    return `${count++}. ${cleanLine}`;
+                }).join('\n');
+            }
+        });
+    });
+    // Clear Workspace Shortcut integration
+    document.getElementById('ctxClearWorkspace').addEventListener('click', () => {
+        contextMenu.classList.add('hidden');
+        const btnNew = document.getElementById('btnNew');
+        if (btnNew) btnNew.click();
+    });
+
+    // SYSTEM MENU BYPASS MECHANISM
+    const systemMenuBtn = document.getElementById('ctxSystemMenu');
+    if (systemMenuBtn) {
+        systemMenuBtn.addEventListener('click', function() {
+            if (!lastRightClickEvent) return;
+
+            // Hide the custom custom-menu layout frame immediately
+            contextMenu.classList.add('hidden');
+
+            // Form a pristine browser-native right-click layout event configuration
+            const systemEvent = new MouseEvent('contextmenu', {
+                bubbles: true,
+                cancelable: true,
+                clientX: lastRightClickEvent.clientX,
+                clientY: lastRightClickEvent.clientY,
+                button: 2 // Targets the standard right-click context channel trigger
+            });
+
+            // Temporarily unhook custom layout listener block 
+            mainTextarea.removeEventListener('contextmenu', preventDefaultWrapper);
+            
+            // Dispatch the raw untamed event directly to the browser render engine layers
+            mainTextarea.dispatchEvent(systemEvent);
+
+            // Re-engage custom control hooks immediately on the next execution cycle tick
+            setTimeout(() => {
+                mainTextarea.addEventListener('contextmenu', preventDefaultWrapper);
+            }, 10);
+        });
+    }
+    
+    // --- 1. UNDO & REDO MECHANISMS ---
+    // Note: Standard textareas natively handle undo/redo when interacting via keyboard shortcuts.
+    // Programmatic triggers are best handled by letting the browser handle its internal history undo loops.
+    document.getElementById('ctxUndo').addEventListener('click', () => {
+        contextMenu.classList.add('hidden');
+        mainTextarea.focus();
+        try {
+            document.execCommand('undo', false, null); // Basic fallback for historical textarea stacks
+        } catch (e) {
+            console.warn("Native history undo routing bypassed.");
+        }
+    });
+
+    document.getElementById('ctxRedo').addEventListener('click', () => {
+        contextMenu.classList.add('hidden');
+        mainTextarea.focus();
+        try {
+            document.execCommand('redo', false, null);
+        } catch (e) {
+            console.warn("Native history redo routing bypassed.");
+        }
+    });
+
+    // --- 2. SELECT ALL ---
+    document.getElementById('ctxSelectAll').addEventListener('click', () => {
+        contextMenu.classList.add('hidden');
+        mainTextarea.focus();
+        mainTextarea.select(); // High-level highlight wrapper sets bounds instantly
+    });
+
+    // --- 3. COPY ---
+    document.getElementById('ctxCopy').addEventListener('click', () => {
+        contextMenu.classList.add('hidden');
+        mainTextarea.focus();
+        
+        const start = mainTextarea.selectionStart;
+        const end = mainTextarea.selectionEnd;
+        const selectedText = mainTextarea.value.substring(start, end);
+
+        if (selectedText) {
+            navigator.clipboard.writeText(selectedText)
+                .catch(err => console.error("Clipboard copy operation failed:", err));
+        }
+    });
+
+    // --- 4. CUT ---
+    document.getElementById('ctxCut').addEventListener('click', () => {
+        contextMenu.classList.add('hidden');
+        mainTextarea.focus();
+
+        const start = mainTextarea.selectionStart;
+        const end = mainTextarea.selectionEnd;
+        const originalText = mainTextarea.value;
+        const selectedText = originalText.substring(start, end);
+
+        if (selectedText) {
+            // Write text to clipboard first
+            navigator.clipboard.writeText(selectedText).then(() => {
+                // Splice it out of your textarea string value
+                mainTextarea.value = originalText.substring(0, start) + originalText.substring(end);
+                // Reset cursor position precisely where the cut block used to be
+                mainTextarea.setSelectionRange(start, start);
+                mainTextarea.dispatchEvent(new Event('input')); // Sync line counters
+            }).catch(err => console.error("Clipboard cut operation failed:", err));
+        }
+    });
+
+    // --- 5. PASTE (Asynchronous Clipboard Integration) ---
+    document.getElementById('ctxPaste').addEventListener('click', () => {
+        contextMenu.classList.add('hidden');
+        mainTextarea.focus();
+
+        // Requests permission from user automatically on first interaction
+        navigator.clipboard.readText().then(clipboardText => {
+            if (!clipboardText) return;
+
+            const start = mainTextarea.selectionStart;
+            const end = mainTextarea.selectionEnd;
+            const originalText = mainTextarea.value;
+
+            // Splice the text from the clipboard right into the current cursor spot or over current selection
+            mainTextarea.value = originalText.substring(0, start) + clipboardText + originalText.substring(end);
+
+            // Move the typing cursor perfectly to the end of your newly pasted text chunk
+            const newCursorPos = start + clipboardText.length;
+            mainTextarea.setSelectionRange(newCursorPos, newCursorPos);
+            
+            mainTextarea.dispatchEvent(new Event('input')); // Force line logic updates
+        }).catch(err => {
+            console.warn("Clipboard read permission denied or failed: ", err);
+            alert("To use 'Paste' from the custom menu, please allow clipboard access when prompted, or use standard Ctrl+V / Shift+Right-Click.");
+        });
+    });
+    
+}
+
+    </script>   
 </body>
 </html>
