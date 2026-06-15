@@ -14,7 +14,8 @@
             --glass-border: 2px solid #000000;
             --text-main: #000000;
             --workspace-font: 'Arial', sans-serif;
-            --workspace-size: 2rem;
+            --workspace-size: 2 rem;
+            --workspace-fluid-size: clamp(1.6rem, 1.1rem + 2.4cqmin, 2.4rem);
             --workspace-weight: normal;
             --blur-amount: 12px;
         }
@@ -49,6 +50,8 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
             overflow: hidden;
             transition: background 0.3s ease;
+            container-type: size;
+            container-name: appWorkspace;
         }
 
 
@@ -146,17 +149,37 @@
 
       /* --- UPDATED TITLE HUB EXTENSION WRAPPER --- */
     .title-container {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 100%;
-        gap: 0.5rem;
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        width: 100% !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        gap: 0 !important; /* Spacing handled strictly by our percentage layout splits */
+    }
+    
+    .header-input-group {
+         display: flex;
+         flex-direction: row;
+         align-items: center;
+         width: 100%;
+         margin-top: -40px;
+    
+    /* Crucial: Match your #content's exact left and right padding metrics 
+       so the typography edges align perfectly on a vertical axis */
+     /*    padding-left: 2.5rem; */
+         padding-right: 2.5rem;
+         margin-bottom: 1rem; /* Clean vertical baseline separation */
+    
+         white-space: nowrap;
+         overflow: hidden;
     }
 
     #title {
         flex: 1; /* Title stretches to consume space dynamically */
         font-family: var(--workspace-font);
-        font-size: 2rem;
+        font-size: var(--workspace-fluid-size);
         font-weight: 700;
         padding: 0.8rem 1.5rem;
         color: var(--text-main);
@@ -167,15 +190,22 @@
         letter-spacing: -0.5px;
         backdrop-filter: blur(var(--blur-amount, 12px));
         transition: background 0.2s ease, backdrop-filter 0.2s ease;
-        width: 85.00%;
+        width: 87.7%;
+        
+        flex-grow: 1 !important;
+        flex-shrink: 1 !important;
     }
 
-#ext-div {
-    font-size: 5rem;
-    font-weight: 900;
-    color: var(--text-main);
-    user-select: none;
-    padding: 0 0.25rem;
+    #ext-div {
+        font-size: 7rem;
+        font-weight: 900;
+        color: var(--text-main);
+        user-select: none;
+        padding: 0 0.25rem;
+        
+        width: 0% !important;
+        flex-grow: 0 !important;
+       flex-shrink: 0 !important;
 
     text-shadow:
         -5px -5px 0 var(--glass-bg),
@@ -186,7 +216,7 @@
 
     #ext {
         font-family: var(--workspace-font);
-        font-size: 2rem;
+        font-size: var(--workspace-fluid-size);
         font-weight: 700;
         padding: 0.8rem 1rem;
         background: var(--glass-bg);
@@ -196,8 +226,11 @@
         letter-spacing: -0.5px;
         backdrop-filter: blur(var(--blur-amount, 12px));
         transition: background 0.2s ease, backdrop-filter 0.2s ease;
-        width: 11.65%;
-        color: var(--text-main);
+        width: 11.65%; 
+        color: var(--text-main);        
+
+        flex-grow: 0 !important;
+        flex-shrink: 0 !important;
     }
         .editor-wrapper {
             flex: 1;
@@ -221,8 +254,8 @@
             backdrop-filter: blur(var(--blur-amount, 12px));
             transition: background 0.2s ease, backdrop-filter 0.2s ease;
         }
-
-                #staticLineGutter {
+        
+        #staticLineGutter {
             font-size: var(--workspace-size) !important;
             font-weight: var(--workspace-weight) !important;
             line-height: 1.5 !important;
@@ -232,6 +265,7 @@
             transition: background 0.2s ease, backdrop-filter 0.2s ease !important;
         }
         
+
         /* --- RUNTIME REALTIME METRICS FOOTER --- */
         footer {
             width: 100%;
@@ -239,7 +273,7 @@
             background: var(--glass-bg);
             border: var(--glass-border);
             padding: 0.8rem 1.5rem;
-            font-size: 1.5rem;
+            font-size: calc(var(--workspace-fluid-size) * 0.50);
             font-family: var(--workspace-font) !important;
             font-weight: bold;
             text-transform: uppercase;
@@ -487,7 +521,7 @@
     </aside>
 
     <main id="workspaceMain">
-        <div style="display: block">
+        <div class="header-input-group" style="display: block">
         <input id="title" placeholder="UNTITLED DOCUMENT PREVIEW" autocomplete="off"> <label id="ext-div" style="text-shadow: black">.</label> <input id="ext" placeholder="TXT" autocomplete="off">
         </div>
         
@@ -733,6 +767,8 @@
             "olive": "128, 128, 0", "green": "0, 128, 0", "lime": "0, 255, 0", "teal": "0, 128, 128",
             "aqua": "0, 255, 255", "blue": "0, 0, 255", "navy": "0, 0, 128", "red": "255, 0, 0", "yellow": "255, 255, 0"
         };
+        
+        
 
         // Persistent Hardcoded Default Fallbacks
         const nativeWallpapers = [
@@ -1020,7 +1056,7 @@ document.getElementById('btnFetchAndAppendRandom').addEventListener('click', asy
             if (cachedTitle !== null) {
                 dom.title.value = cachedTitle;
             } else {
-                dom.title.value = ""; // or your desired default title string
+                dom.title.value = ""; // or the desired default title string
             }
 
         // ADD THIS BLOCK: Restore Extension
@@ -1031,7 +1067,7 @@ document.getElementById('btnFetchAndAppendRandom').addEventListener('click', asy
                 dom.ext.value = "TXT"; // Clean default fallback
             }
 
-        // Force your tab title synchronizer to run once on load
+        // Force the tab title synchronizer to run once on load
             if (typeof syncTabAndCache === "function") {
                 syncTabAndCache();
              } else {
@@ -1048,7 +1084,7 @@ document.getElementById('btnFetchAndAppendRandom').addEventListener('click', asy
             dom.saveIntentModal.style.display = "flex";
         }
 
-        // OPTION A: Exports your raw text buffer cleanly
+        // OPTION A: Exports the raw text buffer cleanly
         function saveWorkspaceFileRaw() {
             const blob = new Blob([dom.content.value], { type: 'text/plain;charset=utf-8' });
             const cleanTitle = dom.title.value.trim().replace(/\s+/g, '_') || "UNTITLED";
@@ -1342,10 +1378,11 @@ function readWorkspaceFile(e) {
 }
 
 function applyActiveThemeScheme() {
+    // 1. Correctly read the active value token identifier from the selector menu component
     const selectedScheme = dom.schemeSelect.value;
     const rootStyle = document.documentElement.style;
     
-    // 1. CLEAR all inline style overrides across elements so they don't lock up layout rendering
+    // 2. CLEAR out all inline style overrides across elements so they don't lock up layout rendering
     const clearTargets = [dom.content, dom.title, dom.ext, dom.leftTel, dom.rightTel];
     clearTargets.forEach(element => {
         if (element) {
@@ -1359,49 +1396,48 @@ function applyActiveThemeScheme() {
     const leftTelemetry = dom.leftTel;
     const rightTelemetry = dom.rightTel;
 
-    // 2. Directly update the theme layout states & CSS properties directly here
-    if (selectedScheme === "light") {
-        // Set the core global colors for the entire page layout grid
-        rootStyle.setProperty('--bg-color-rgb', '255, 255, 255');
-        rootStyle.setProperty('--text-main', '#000000');
+    let targetFg = "#000000";
+    let targetBgColor = "white";
 
-        // Apply clean light theme states to the elements
-        if (dom.content) dom.content.style.color = "#000000";
-        if (titleInput) titleInput.style.color = "#000000";
-        if (extInput) extInput.style.color = "#666666";
-        if (leftTelemetry) leftTelemetry.style.color = "#000000";
-        if (rightTelemetry) rightTelemetry.style.color = "#000000";
-        
-    } else if (selectedScheme === "dark") {
-        // Set the core global colors for the entire page layout grid
-        rootStyle.setProperty('--bg-color-rgb', '24, 24, 27'); // Custom dark gray mesh background
-        rootStyle.setProperty('--text-main', '#ffffff');
+    // 3. Match selections against the document's native options schema mapping arrays
+    if (selectedScheme === "custom") {
+        targetFg = dom.fgSelect ? dom.fgSelect.value : "#000000";
+        targetBgColor = dom.bgSelect ? dom.bgSelect.value : "white";
+    } else if (styleSchemes[selectedScheme]) {
+        // Automatically look up colors from the existing preset map pairs
+        targetFg = styleSchemes[selectedScheme].fg;
+        targetBgColor = styleSchemes[selectedScheme].bg;
+    }
 
-        // Apply clean dark theme states to the elements
-        if (dom.content) dom.content.style.color = "#ffffff";
-        if (titleInput) titleInput.style.color = "#ffffff";
-        if (extInput) extInput.style.color = "#a1a1aa";
-        if (leftTelemetry) leftTelemetry.style.color = "#ffffff";
-        if (rightTelemetry) rightTelemetry.style.color = "#ffffff";
-        
-    } else if (selectedScheme === "custom") {
-        // Fallback option extraction utilizing your custom palette sliders if available
-        const customFg = dom.fgSelect ? dom.fgSelect.value : "#000000";
-        const customBg = dom.bgSelect ? dom.bgSelect.value : "225, 225, 255"; 
-        
-        rootStyle.setProperty('--text-main', customFg);
-        
-        // Convert hex background to RGB channels if necessary, or pass custom tokens
-        if (dom.bgSelect) {
-            // Assuming customBg is stored or converted to an RGB triple string format (e.g. "50, 50, 50")
-            rootStyle.setProperty('--bg-color-rgb', customBg); 
-        }
+    // 4. Translate named colors into their clean mathematical RGB channel tokens
+    const calculatedRGB = rgbChannels[targetBgColor] || "255, 255, 255";
 
-        if (dom.content) dom.content.style.color = customFg;
-        if (titleInput) titleInput.style.color = customFg;
-        if (extInput) extInput.style.color = customFg;
-        if (leftTelemetry) leftTelemetry.style.color = customFg;
-        if (rightTelemetry) rightTelemetry.style.color = customFg;
+    // 5. Update the core layout CSS properties directly at the root scope level
+    rootStyle.setProperty('--bg-color-rgb', calculatedRGB);
+    rootStyle.setProperty('--text-main', targetFg);
+
+    // ==============================================
+    // 🎛️ FIX: RESTORE & PRESERVE ACTIVE OPACITY STEP
+    // ==============================================
+    // Reads what step you are currently on and enforces the correct alpha variable dynamically
+    let calculatedOpacity = "0.85"; // Normal base fallback
+    if (opacityStep === 1) calculatedOpacity = "1.00"; // Completely Opaque/Solid
+    if (opacityStep === 2) calculatedOpacity = "0.60"; // Frosted Acrylic Glass Layer
+    if (opacityStep === 3) calculatedOpacity = "0.30"; // Semi-Clear HUD Overlap
+    if (opacityStep === 4) calculatedOpacity = "0.00"; // Pure Window Transparency
+    
+    rootStyle.setProperty('--active-opacity', calculatedOpacity);
+
+    // 6. Explicitly enforce the structural typography text colors to elements safely
+    if (dom.content) dom.content.style.color = targetFg;
+    if (titleInput) { titleInput.style.color = targetFg; titleInput.style.background = "transparent"; }
+    if (extInput) { extInput.style.color = targetFg === "#000000" ? "#666666" : targetFg; extInput.style.background = "transparent"; }
+    if (leftTelemetry) leftTelemetry.style.color = targetFg;
+    if (rightTelemetry) rightTelemetry.style.color = targetFg;
+
+    // Refresh telemetry to show the correct workspace label matching the opacity layout step
+    if (typeof updateCaretPosition === "function") {
+        updateCaretPosition();
     }
 }
 
@@ -1449,13 +1485,13 @@ function applyOpacityWorkspaceState() {
             break;
     }
     
-    // Safely fire your text engine positioning calculations if ready
+    // Safely fire the text engine positioning calculations if ready
     if (typeof updateCaretPosition === "function") {
         updateCaretPosition();
     }
 }
 
-        // Automatically alters your current typography, style settings, and skin properties
+        // Automatically alters the current typography, style settings, and skin properties
         function ingestEnvironmentManifestPackage(data) {
             dom.title.value = data.title || "UNTITLED";
             dom.ext.value = data.extension || "TXT";
@@ -1694,26 +1730,25 @@ function commitColorShift(fg, bg) {
         fg
     );
 
-    rootStyle.setProperty(
-        '--glass-bg',
-        bg
-    );
+  const rawRGB =
+    rgbChannels[
+        bg.toLowerCase()
+    ] || "255, 255, 255";
 
-    const rawRGB =
-        rgbChannels[
-            bg.toLowerCase()
-        ] || "255, 255, 255";
+rootStyle.setProperty(
+    '--bg-color-rgb',
+    rawRGB
+);
 
-    rootStyle.setProperty(
-        '--bg-color-rgb',
-        rawRGB
-    );
-    
-    rootStyle.setProperty(
-         '--glass-bg',
-         bg
+const opacity =
+    getComputedStyle(document.documentElement)
+        .getPropertyValue('--active-opacity')
+        .trim() || "0.85";
 
-    );
+rootStyle.setProperty(
+    '--glass-bg',
+    `rgba(${rawRGB}, ${opacity})`
+);
 
     dom.content.style.color = fg;
     dom.title.style.color = fg;
@@ -1735,7 +1770,7 @@ function commitColorShift(fg, bg) {
             50
         );
     }
-    }
+}
 
         function evaluateSchemePreset() {
             const targetPreset = dom.schemeSelect.value;
@@ -2163,10 +2198,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // Run the color synchronization immediately on initialization
     syncGutterColors();
     
-    // Expose it globally so your theme switches can call it
+    // Expose it globally so that theme switches can call it
     window.syncGutterColors = syncGutterColors;
 
-    // Ingest the gutter column directly inside your editor wrapper block
+    // Ingest the gutter column directly inside the editor wrapper block
     editorWrapper.insertBefore(numGutter, mainTextarea);
 
     // 4. VERTICAL SCROLL ALIGNER LOCK
@@ -2395,7 +2430,7 @@ function triggerSearchReplaceEngine() {
     // 5. Commit mutations to the main DOM workspace view
     mainTextarea.value = updatedBuffer;
 
-    // 6. Mandatory updates to trigger your line number rendering loops
+    // 6. Mandatory updates to trigger the line number rendering loops
     mainTextarea.dispatchEvent(new Event('input'));
 
     // Success Status report to operator console
@@ -2463,7 +2498,7 @@ function triggerFindEngine() {
     const targetScrollTop = (linesBeforeMatch - 1) * lineSpacing - (mainTextarea.clientHeight / 2);
     mainTextarea.scrollTop = Math.max(0, targetScrollTop);
 
-    // Keep your inverted line-number gutter perfectly locked in place with the scroll
+    // Keep the inverted line-number gutter perfectly locked in place with the scroll
     const numGutter = document.getElementById('staticLineGutter');
     if (numGutter) {
         numGutter.scrollTop = mainTextarea.scrollTop;
@@ -2694,7 +2729,7 @@ function updateActiveToolBackgroundMatrix() {
             transition: 'background-color 0.25s ease, color 0.25s ease' // Smooth terminal transition
         });
     } else {
-        // Default Fallback Rollback: Clear inline overrides to restore your default theme settings
+        // Default Fallback Rollback: Clear inline overrides to restore the default theme settings
         Object.assign(mainTextarea.style, {
             backgroundColor: '',
             color: '',
@@ -2956,7 +2991,7 @@ if (mainTextarea && contextMenu) {
         if (selectedText) {
             // Write text to clipboard first
             navigator.clipboard.writeText(selectedText).then(() => {
-                // Splice it out of your textarea string value
+                // Splice it out of the textarea string value
                 mainTextarea.value = originalText.substring(0, start) + originalText.substring(end);
                 // Reset cursor position precisely where the cut block used to be
                 mainTextarea.setSelectionRange(start, start);
@@ -2981,7 +3016,7 @@ if (mainTextarea && contextMenu) {
             // Splice the text from the clipboard right into the current cursor spot or over current selection
             mainTextarea.value = originalText.substring(0, start) + clipboardText + originalText.substring(end);
 
-            // Move the typing cursor perfectly to the end of your newly pasted text chunk
+            // Move the typing cursor perfectly to the end of the newly pasted text chunk
             const newCursorPos = start + clipboardText.length;
             mainTextarea.setSelectionRange(newCursorPos, newCursorPos);
             
