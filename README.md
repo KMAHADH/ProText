@@ -183,16 +183,16 @@ Add screenshot here:
 ![Workspace](screenshots/workspace.png)
 ```
 
-### Theme Manager
+### Dictionary
 
 ```md
-![Themes](screenshots/themes.png)
+![Dictionary](screenshots/Dictionary.png)
 ```
 
-### Wallpaper Manager
+### Thesaurus
 
 ```md
-![Wallpapers](screenshots/wallpapers.png)
+![Thesaurus](screenshots/Thesaurus.png)
 ```
 
 ---
