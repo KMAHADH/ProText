@@ -177,8 +177,6 @@ into a single portable package.
 
 ### Main Workspace
 
-Add screenshot here:
-
 ```md
 ![Workspace](screenshots/Workspace.png)
 ```
