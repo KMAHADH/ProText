@@ -180,7 +180,7 @@ into a single portable package.
 Add screenshot here:
 
 ```md
-![Workspace](screenshots/workspace.png)
+![Workspace](screenshots/Workspace.png)
 ```
 
 ### Dictionary
