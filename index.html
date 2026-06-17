@@ -166,7 +166,7 @@
          width: 100%;
          margin-top: -40px;
     
-    /* Crucial: Match your #content's exact left and right padding metrics 
+    /* Crucial: Match the #content's exact left and right padding metrics 
        so the typography edges align perfectly on a vertical axis */
      /*    padding-left: 2.5rem; */
          padding-right: 2.5rem;
@@ -398,8 +398,8 @@
         .reference-overlay {
             position: fixed;
             top: 10%;
-            left: 12%;
-            width: 76%;
+            left:25%;
+            width: 50%;
             height: 80%;
             background: white;
             border: var(--glass-border);
@@ -407,6 +407,8 @@
             display: none;
             z-index: 500;
             flex-direction: column;
+            text-align: center;
+            justify-content: center;
         }
 
         .reference-overlay iframe { 
@@ -518,6 +520,7 @@
         <button class="side-icon-btn" id="btnClarity" data-tooltip="Toggle Clarity Shield">👓</button>
         <button class="side-icon-btn" id="btnOpacity" data-tooltip="Toggle Core Opacity Mode">🌓</button>
         <button class="side-icon-btn active" id="btnConfig" data-tooltip="Toggle Configuration Console">⚙️</button>
+        <button class="side-icon-btn" id="btnFullscreen" data-tooltip="Toggle Window Fullscreen">📺</button>
     </aside>
 
     <main id="workspaceMain">
@@ -1691,7 +1694,7 @@ if (data.config.scheme === "custom") {
                 if (!selectedTerm) { alert(`Highlight a target term inside the active canvas area first.`); return; }
                 const cleanTerm = selectedTerm.toLowerCase();
 
-                dom.iframeDict.src = `https://en.m.wiktionorg/wiki/${encodeURIComponent(cleanTerm)}`;
+                dom.iframeDict.src = `https://en.m.wiktionary.org/wiki/${encodeURIComponent(cleanTerm)}`;
                 dom.modalDict.style.display = "flex";
                 dom.modalThes.style.display = "none"; // Hide sister frame
                 
@@ -1793,6 +1796,40 @@ rootStyle.setProperty(
 
         // --- MAIN DOM EVENT WIREFRAME HANDLERS ---
         function attachEventIntersects() {
+        
+        document.getElementById('btnFullscreen').addEventListener('click', () => {
+    // Check if the document is already in fullscreen mode
+    if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen()
+            .then(() => {
+                // Optional: Toggle an active visual state class on the button
+                document.getElementById('btnFullscreen').classList.add('active');
+            })
+            .catch(err => {
+                console.error(`Error attempting to enable fullscreen mode: ${err.message} (${err.name})`);
+            });
+    } else {
+        document.exitFullscreen()
+            .then(() => {
+                document.getElementById('btnFullscreen').classList.remove('active');
+            })
+            .catch(err => {
+                console.error(`Error attempting to exit fullscreen mode: ${err.message}`);
+            });
+    }
+});
+
+// Optional: Track if the user exits fullscreen using the 'Esc' key instead of the button
+document.addEventListener('fullscreenchange', () => {
+    const fsButton = document.getElementById('btnFullscreen');
+    if (document.fullscreenElement) {
+        fsButton.classList.add('active');
+    } else {
+        fsButton.classList.remove('active');
+    }
+});
+        
+        
             document.getElementById('btnSave').addEventListener('click', saveWorkspaceFile);
             document.getElementById('btnNew').addEventListener('click', clearWorkspaceCanvas);
             document.getElementById('btnLoadTrigger').addEventListener('click', () => dom.fileInput.click());
