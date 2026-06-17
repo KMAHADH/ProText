@@ -7,8 +7,8 @@ ProText combines the simplicity of traditional plain-text editing with workspace
 ---
 
 > [!TIP]
-> # NOW, LIVE TO USE/TRY AT 
-[https://kmahadh.github.io/ProText/].
+> # NOW, LIVE TO USE/TRY AT: 
+> # [https://kmahadh.github.io/ProText/].
 
 ---
 
