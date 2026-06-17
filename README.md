@@ -177,21 +177,15 @@ into a single portable package.
 
 ### Main Workspace
 
-```md
 ![Workspace](screenshots/Workspace.png)
-```
 
 ### Dictionary
 
-```md
 ![Dictionary](screenshots/Dictionary.png)
-```
 
 ### Thesaurus
 
-```md
 ![Thesaurus](screenshots/Thesaurus.png)
-```
 
 ---
 
